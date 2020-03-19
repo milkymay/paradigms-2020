@@ -28,12 +28,12 @@ public interface Queue {
     void clear();
     //post: queue is empty; size = 0
 
-    //pre: correct predicate
+    //pre: correct predicate // :NOTE: what is `correct predicate`? is `null` correct? I guess no
     Queue filter(Predicate<Object> p);
     //R: new ArrayQueue q: q.elements is this.elements subset; p.test(q.elements[0..q.size-1]) = true;
     //p.test(this/q.elements[i]) = false; order is saved;
 
-    //pre: true
+    //pre: true // :NOTE: even if `f` is NULL? no
     Queue map(Function<Object, Object> f);
     //R: new ArrayQueue q: q.elements; q.elements[0..q.size-1] = f.apply(elements[0..q.size-1]);
     //order is saved; q.elements.length = this.elements.length
