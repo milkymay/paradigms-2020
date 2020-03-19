@@ -1,8 +1,6 @@
 package queue;
 
 import java.util.Arrays;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class ArrayQueue extends AbstractQueue implements Queue {
     private int start = 3;
@@ -68,33 +66,7 @@ public class ArrayQueue extends AbstractQueue implements Queue {
     //post: arr[queue.size()]: arr[0] = queue[start], arr[1] = queue[start + 1] ... arr[size - 1] = queue[end];
     //queue is the same
 
-    //pre: correct predicate
-    @Override
-    public Queue filter(Predicate<Object> p) {
-        int cur = start, len = elements.length;
-        ArrayQueue q = new ArrayQueue();
-        for (int i = 0; i < size; i++) {
-            if (p.test(elements[cur])) {
-                q.enqueue(elements[cur]);
-            }
-            cur = (cur - 1 + len) % len;
-        }
-        return q;
+    public Queue create() {
+        return new ArrayQueue();
     }
-    //R: new ArrayQueue q: q.elements is this.elements subset; p.test(q.elements[0..q.size-1]) = true;
-    //p.test(this/q.elements[i]) = false; order is saved;
-
-    //pre: true
-    @Override
-    public Queue map(Function<Object, Object> f) {
-        int cur = start, len = elements.length;
-        ArrayQueue q = new ArrayQueue();
-        for (int i = 0; i < size; i++) {
-            q.enqueue(f.apply(elements[cur]));
-            cur = (cur - 1 + len) % len;
-        }
-        return q;
-    }
-    //R: new ArrayQueue q: q.elements; q.elements[0..q.size-1] = f.apply(elements[0..q.size-1]);
-    //order is saved; q.elements.length = this.elements.length
 }
