@@ -44,6 +44,7 @@ public class LinkedQueue extends AbstractQueue implements Queue {
     }
 
     private class Node {
+        // :NOTE: are this references mutable? where is `final` modifier?
         private Object value;
         private Node next;
 

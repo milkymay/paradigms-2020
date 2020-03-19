@@ -73,6 +73,7 @@ public abstract class AbstractQueue implements Queue{
         Object[] temp = toArray();
         Queue queue = create();
         for (Object e: temp) {
+            // :NOTE: contract violation (size can be another)
             if (function.apply(e) != null) {
                 queue.enqueue(function.apply(e));
             }
