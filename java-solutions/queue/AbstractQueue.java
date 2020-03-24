@@ -80,7 +80,7 @@ public abstract class AbstractQueue implements Queue{
         }
         return queue;
     }
-    //R: new ArrayQueue q: q.elements; q.elements[0..q.size-1] = f.apply(elements[0..q.size-1]);
-    //order is saved; q.elements.length = this.elements.length
+    //R: new ArrayQueue q: q.elements; q.elements[0..size'-1] = f.apply(elements[0..size'-1]), size' <= q.size;
+    //order is saved; q.elements.length <= this.elements.length
 
 }

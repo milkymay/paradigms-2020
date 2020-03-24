@@ -1,33 +1,32 @@
 package queue;
 
-import java.util.Arrays;
-
 public class ArrayQueue extends AbstractQueue implements Queue {
-    private int start = 3;
-    private int end = 3;
+    private int start;
+    private int end;
     private Object[] elements = new Object[4];
 
-    // :NOTE: copy-pase of code for calculating current head/tail
-    
+    // :NOTE: copy-paste of code for calculating current head/tail
+    private int inc(int val) {
+        return (val + 1) % elements.length;
+    }
+
     //pre: element != null
     public void doEnqueue(Object element) {
-        elements[end--] = element;
-        if (end < 0) { end = elements.length - 1;}
-        end = (end + elements.length) % elements.length;
-        
-        // :NOTE: ensure capacity after enqueue?
         if (size == elements.length) {
             ensureCapacity();
         }
+        elements[end] = element;
+        end = inc(end);
+        // :NOTE: ensure capacity after enqueue?
     }
     //post: for i = 0..size-1 elements[i] = elements[i]' && elements[size] = element && size = min(size'+1, possible_size)
-    //start and ens are valid (end--)
+    //start and ens are valid (end++)
 
     //pre: start != end
     public Object doDequeue() {
         Object value = element();
-        elements[start--] = null;
-        start = (start + elements.length) % elements.length;
+        elements[start] = null;
+        start = inc(start);
         return value;
     }
     //post: for i = 0..size-2 elements[i] = elements[i]' && elements[size-1] = null && size = size' - 1;
@@ -40,36 +39,34 @@ public class ArrayQueue extends AbstractQueue implements Queue {
 
     //pre: true
     public void doClear() {
-        start = elements.length - 1;
-        end = start;
-        Arrays.fill(elements, null);
+        start = 0;
+        end = 0;
+        elements = new Object[4];
     }
     //post: elements is an empty array of nulls with start = end = elements.length - 1 && size = 0
 
     private void ensureCapacity() {
         Object[] queue = new Object[2 * elements.length];
-        int sz = elements.length;
-        System.arraycopy(elements, 0, queue,sz * 2 - 1 - start, start + 1);
-        System.arraycopy(elements, start + 1, queue, sz, sz - start - 1);
-        start = queue.length - 1;
-        end = start - sz;
-        elements = queue;
+        elements = copy(queue);
+        start = 0;
+        end = size();
     }
 
     //pre: true
     // :NOTE: by-hand copy of elements in this override?
     public Object[] toArray() {
-        int size = size(), length = elements.length;
-        Object[] arr = new Object[size];
-        int cur = start;
-        for (int i = 0; i < size; i++) {
-            arr[i] = elements[cur];
-            cur = (cur - 1 + length) % length;
-        }
-        return arr;
+        Object[] arr = new Object[size()];
+        return size() == 0 ? arr : copy(arr);
     }
     //post: arr[queue.size()]: arr[0] = queue[start], arr[1] = queue[start + 1] ... arr[size - 1] = queue[end];
     //queue is the same
+
+    private Object[] copy(Object[] dest) {
+        int len = (start < end ? end : elements.length) - start ;
+        System.arraycopy(elements, start, dest,0, len);
+        System.arraycopy(elements, 0, dest, len, size() - len);
+        return dest;
+    }
 
     public Queue create() {
         return new ArrayQueue();
