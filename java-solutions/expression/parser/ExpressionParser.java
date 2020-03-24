@@ -20,21 +20,15 @@ public class ExpressionParser<T> implements Parser {
         MAX("max", 2),
         MIN("min", 2),
         ADD ("+", 2),
-        POW ("**", 2),
-        LOG ("//", 2),
         SUBTRACT("-", 2),
         MULTIPLY("*", 2),
         DIVIDE("/", 2),
-        LEFTSHIFT("<<", 2),
-        RIGHTSHIFT(">>", 2),
         VARIABLE(null, 0),
         DIGIT(null, 0),
         WHITESPACE(null, 0),
         ENDLINE("\0", 0),
         BRACKETLEFT("(", 1),
-        BRACKETRIGHT(")", 2),
-        LOG2("log2", 1),
-        POW2("pow2", 1);
+        BRACKETRIGHT(")", 2);
         private String operate;
         private int bin;
         Operator(String operator, int bin) {
@@ -57,24 +51,16 @@ public class ExpressionParser<T> implements Parser {
     public TripleExpression<T> parse(String expression) throws ParserException, WrongBracketsBalanceException {
         int balance = 0;
         for (int i = 0; i < expression.length(); i++) {
-            if (expression.charAt(i) == '(') {
-                balance++;
-            }
-            if (expression.charAt(i) == ')') {
-                balance--;
-            }
-            if (balance < 0)
-                throw new WrongBracketsBalanceException(expression);
+            balance += expression.charAt(i) == '(' ? 1 : expression.charAt(i) == ')' ? -1 : 0;
+            if (balance < 0) { throw new WrongBracketsBalanceException(expression); }
         }
-        if (balance != 0)
-            throw new WrongBracketsBalanceException(expression);
+        if (balance != 0) { throw new WrongBracketsBalanceException(expression); }
         pos = 0;
         len = expression.length();
         this.expression = expression;
         if (getOperator() == Operator.WHITESPACE) {
             getNextOperator();
         }
-
         return getExpressionMaxAndMin();
     }
 
@@ -117,7 +103,6 @@ public class ExpressionParser<T> implements Parser {
         return res;
     }
 
-
     private TripleExpression<T> getExpressionMultiplyAndDivide() throws ParserException{
         TripleExpression<T> res = getExpressionVariableAndConst();
         Operator cur = getOperator();
@@ -144,6 +129,7 @@ public class ExpressionParser<T> implements Parser {
         error.append("^");
         return error;
     }
+
     private TripleExpression<T> getExpressionVariableAndConst() throws ParserException{
         Operator current = getOperator();
         if (current == Operator.DIGIT){
@@ -171,18 +157,20 @@ public class ExpressionParser<T> implements Parser {
             getNextOperator();
             return new Negate<>(getExpressionVariableAndConst(), myAlgebra);
         }
-        throw new NotValidSymbolException(pos, expression, getError());
+        throw new InvalidSymbolException(pos, expression, getError());
     }
 
     private Operator checkNextOperator(int pos) throws ParserException {
         return getOperator(pos);
     }
 
-    private Operator getOperator(int pos) throws NotValidSymbolException {
-        if (pos >= len)
+    private Operator getOperator(int pos) throws InvalidSymbolException {
+        if (pos >= len) {
             return Operator.ENDLINE;
+        }
         for (Operator A : Operator.values()) {
-            if (len - pos >= A.getLength() && expression.substring(pos, pos + A.getLength()).equals(A.getStringOperator())) {
+            if (len - pos >= A.getLength() &&
+                    expression.substring(pos, pos + A.getLength()).equals(A.getStringOperator())) {
                 return A;
             }
         }
@@ -195,8 +183,7 @@ public class ExpressionParser<T> implements Parser {
         if (expression.charAt(pos) == 'x' || expression.charAt(pos) == 'y' || expression.charAt(pos) == 'z') {
             return Operator.VARIABLE;
         }
-
-        throw new NotValidSymbolException(pos, expression, getError());
+        throw new InvalidSymbolException(pos, expression, getError());
     }
 
     private void getNextOperator() throws ParserException{
@@ -207,18 +194,9 @@ public class ExpressionParser<T> implements Parser {
     }
 
     private T getInt() throws ParserException {
-        int begin = pos;
-        int end = pos;
-        if (getOperator() == Operator.SUBTRACT) {
-            ++end;
-            getNextOperator();
-        }
-
-        while (getOperator() == Operator.DIGIT) {
-            ++end;
-            getNextOperator();
-        }
-
+        int begin = pos, end;
+        for (end = pos; getOperator() == Operator.SUBTRACT; end++) { getNextOperator(); }
+        for (; getOperator() == Operator.DIGIT; end++) { getNextOperator(); }
         String number = expression.substring(begin, end);
 
         try {
@@ -231,25 +209,29 @@ public class ExpressionParser<T> implements Parser {
         return getOperator(pos);
     }
 
-    private TripleExpression<T> getClassOperation(String operator, TripleExpression<T> first, TripleExpression<T> second) throws ParserException{
-        if (operator.equals("min")) {
-            return new Min<>(first, second, myAlgebra);
+    private TripleExpression<T> getClassOperation(String operator, TripleExpression<T> first, TripleExpression<T> second) throws ParserException {
+        switch (operator.toLowerCase()) {
+            case "min": {
+                return new Min<>(first, second, myAlgebra);
+            }
+            case "max": {
+                return new Max<>(first, second, myAlgebra);
+            }
+            case "+": {
+                return new Add<>(first, second, myAlgebra);
+            }
+            case "-": {
+                return new Subtract<>(first, second, myAlgebra);
+            }
+            case "*": {
+                return new Multiply<>(first, second, myAlgebra);
+            }
+            case "/": {
+                return new Divide<>(first, second, myAlgebra);
+            }
+            default: {
+                throw new ExpectedArithmeticActionException(pos, expression, getError());
+            }
         }
-        if (operator.equals("max")) {
-            return new Max<>(first, second, myAlgebra);
-        }
-        if (operator.equals("+")) {
-            return new Add<>(first, second, myAlgebra);
-        }
-        if (operator.equals("-")) {
-            return new Subtract<>(first, second, myAlgebra);
-        }
-        if (operator.equals("*")) {
-            return new Multiply<>(first, second, myAlgebra);
-        }
-        if (operator.equals("/")) {
-            return new Divide<>(first, second, myAlgebra);
-        }
-        throw new ExpectedArithmeticActionException(pos, expression, getError());
     }
 }
