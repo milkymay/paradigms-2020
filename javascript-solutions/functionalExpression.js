@@ -8,7 +8,7 @@ const abstractOperation = operation => (...operands) => (...values) => {
     return operation(...result);
 }
 
-const cnst = value => x => value;
+const cnst = value => () => value;
 
 const variable = name => {
     let ind = (name === "x") ? 0 : (name === "y") ? 1 : 2;
@@ -22,6 +22,18 @@ const divide = abstractOperation((a, b) => a / b);
 const negate = abstractOperation(a => -a);
 const cube = abstractOperation(a => a * a * a);
 const cuberoot = abstractOperation(a => Math.cbrt(a));
+const pi = cnst(Math.PI);
+const e = cnst(Math.E);
+
+const avg5 = abstractOperation((...operands) => {
+    let sum = operands.reduce((sum, currentSum) => sum + currentSum);
+    return sum / operands.length;
+});
+
+const med3 = abstractOperation((...operands) => {
+    operands.sort((a, b) => a - b);
+    return operands[1];
+});
 
 const operations = {
     '+'        : [add, 2],
@@ -30,5 +42,7 @@ const operations = {
     '/'        : [divide, 2],
     'negate'   : [negate, 1],
     'cube'     : [cube, 1],
-    'cuberoot' : [cuberoot, 1]
+    'cuberoot' : [cuberoot, 1],
+    'avg5'     : [avg5, 5],
+    'med3'     : [med3, 3]
 };
