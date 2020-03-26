@@ -3,6 +3,47 @@ package queue;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/*
+ * Tests failed
+ * 
+Running queue.QueueToArrayTest for LinkedQueue in CLASS mode
+        === testEmpty
+        === testSingleton
+        === testClear
+        === testRandom, add frequency = 0.0
+        === testRandom, add frequency = 0.2
+        === testRandom, add frequency = 0.4
+        === testRandom, add frequency = 0.6
+        === testRandom, add frequency = 0.8
+        === testRandom, add frequency = 1.0
+===========================================
+Test run: 674878, passed: 674878, failed: 0
+Finished in 6986 ms
+Version: QueueToArrayTest, 12.03.2020 12:07:32
+Running queue.QueueToArrayTest for ArrayQueue in CLASS mode
+        === testEmpty
+        === testSingleton
+        === testClear
+        === testRandom, add frequency = 0.0
+        === testRandom, add frequency = 0.2
+Exception in thread "main" java.lang.AssertionError: element():
+     expected `[a]`,
+       actual `null`
+        at base.Asserts.assertTrue(Unknown Source)
+        at base.Asserts.assertEquals(Unknown Source)
+        at queue.ReflectionTest.checkResult(Unknown Source)
+        at queue.ArrayQueueTest.checkResult(Unknown Source)
+        at queue.ReflectionTest.lambda$checking$0(Unknown Source)
+        at queue.$Proxy0.element(Unknown Source)
+        at queue.ArrayQueueTest.check(Unknown Source)
+        at queue.ArrayQueueTest.checkAndSize(Unknown Source)
+        at queue.ArrayQueueTest.testRandom(Unknown Source)
+        at queue.ArrayQueueTest.test(Unknown Source)
+        at queue.ArrayQueueTest.test(Unknown Source)
+        at queue.QueueTest.test(Unknown Source)
+        at queue.QueueToArrayTest.main(Unknown Source)
+ */
+
 public interface Queue {
     //pre: true
     void enqueue(Object element);
