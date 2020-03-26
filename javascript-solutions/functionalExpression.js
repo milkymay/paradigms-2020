@@ -1,5 +1,7 @@
 "use strict";
 
+// :NOTE: for hard modification `parser` required
+
 const abstractOperation = operation => (...operands) => (...values) => {
     let result = [];
     for (let operand of operands) {
