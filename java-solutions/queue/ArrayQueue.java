@@ -5,7 +5,6 @@ public class ArrayQueue extends AbstractQueue implements Queue {
     private int end;
     private Object[] elements = new Object[4];
 
-    // :NOTE: copy-paste of code for calculating current head/tail
     private int inc(int val) {
         return (val + 1) % elements.length;
     }
@@ -17,7 +16,6 @@ public class ArrayQueue extends AbstractQueue implements Queue {
         }
         elements[end] = element;
         end = inc(end);
-        // :NOTE: ensure capacity after enqueue?
     }
     //post: for i = 0..size-1 elements[i] = elements[i]' && elements[size] = element && size = min(size'+1, possible_size)
     //start and ens are valid (end++)
@@ -53,7 +51,6 @@ public class ArrayQueue extends AbstractQueue implements Queue {
     }
 
     //pre: true
-    // :NOTE: by-hand copy of elements in this override?
     public Object[] toArray() {
         Object[] arr = new Object[size()];
         return size() == 0 ? arr : copy(arr);

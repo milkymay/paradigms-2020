@@ -8,7 +8,7 @@ public class LinkedQueue extends AbstractQueue implements Queue {
 
     //pre: true
     public void doEnqueue(Object element) {
-        if (size == 1) {
+        if (size == 0) {
             tail = new Node(element, null);
             head = tail;
         } else {
@@ -44,7 +44,6 @@ public class LinkedQueue extends AbstractQueue implements Queue {
     }
 
     private class Node {
-        // :NOTE: are this references mutable? where is `final` modifier?
         private Object value;
         private Node next;
 

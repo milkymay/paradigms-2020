@@ -29,8 +29,8 @@ public abstract class AbstractQueue implements Queue{
     //pre: element != null;
     public void enqueue(Object element) {
         assert element != null;
-        size++;
         doEnqueue(element);
+        size++;
     }
     //post: size' = size + 1; element is added to the end of queue
     //pre: true
@@ -73,14 +73,13 @@ public abstract class AbstractQueue implements Queue{
         Object[] temp = toArray();
         Queue queue = create();
         for (Object e: temp) {
-            // :NOTE: contract violation (size can be another)
             if (function.apply(e) != null) {
                 queue.enqueue(function.apply(e));
             }
         }
         return queue;
     }
-    //R: new ArrayQueue q: q.elements; q.elements[0..size'-1] = f.apply(elements[0..size'-1]), size' <= q.size;
-    //order is saved; q.elements.length <= this.elements.length
+    //R: new ArrayQueue q: q.elements; q.elements[0..q.size-1] = f.apply(elements[0..q.size-1]);
+    //order is saved; q.elements.length = this.elements.length
 
 }
