@@ -4,6 +4,9 @@ public class LinkedQueue extends AbstractQueue implements Queue {
     private Node head;
     private Node tail;
 
+    
+    // :NOTE: it's false because you create 2 instances of Node in 40-41 lines
+    // but you didn't override `equals & hasCode` so head != tail
     //I: head and tail are valid; (if queue if empty head = tail)
 
     //pre: true
@@ -42,8 +45,9 @@ public class LinkedQueue extends AbstractQueue implements Queue {
     public Queue create() {
         return new LinkedQueue();
     }
-
+    
     private class Node {
+        // :NOTE: is value mutable? where is `final` modifier?
         private Object value;
         private Node next;
 

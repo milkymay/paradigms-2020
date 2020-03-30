@@ -73,6 +73,11 @@ public abstract class AbstractQueue implements Queue{
         Object[] temp = toArray();
         Queue queue = create();
         for (Object e: temp) {
+            // :NOTE: imagine situation
+            // You have: q  = [2, 4, 5, 2, 3, 9]
+            // Function: f  = i -> i % 2 == 0 ? null : i
+            // Result:   q' = [5, 3, 9]
+            // Conclusion: q'.length != q.length -> contradiction to contract
             if (function.apply(e) != null) {
                 queue.enqueue(function.apply(e));
             }
