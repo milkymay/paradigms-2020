@@ -2,7 +2,7 @@ package expression;
 
 import expression.generic.AbstractAlgebra;
 
-public class Negate<T> implements TripleExpression<T> {
+public class Negate<T extends Number> implements TripleExpression<T> {
     private TripleExpression<T> expression;
     private AbstractAlgebra<T> algebra;
     public Negate(TripleExpression<T> expression, AbstractAlgebra<T> algebra) {

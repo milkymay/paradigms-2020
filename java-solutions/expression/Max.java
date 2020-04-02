@@ -2,7 +2,7 @@ package expression;
 
 import expression.generic.AbstractAlgebra;
 
-public class Max<T> extends MathOperations<T> {
+public class Max<T extends Number> extends MathOperations<T> {
     public Max(TripleExpression<T> first, TripleExpression <T> second, AbstractAlgebra<T> a) {
         super(first, second, a);
     }

@@ -35,7 +35,7 @@ public class BigIntegerAlgebra extends AbstractAlgebra<BigInteger> {
 
     public BigInteger divide(BigInteger a, BigInteger b) {
         // :NOTE: better to use `BigInteger.ZERO`
-        if (b.equals(new BigInteger(String.valueOf(0)))) {
+        if (b.equals(BigInteger.ZERO)) {
             throw new DivisionByZeroException(a.toString());
         }
         return a.divide(b);

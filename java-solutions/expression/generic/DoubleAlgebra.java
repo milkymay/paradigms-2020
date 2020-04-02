@@ -16,13 +16,7 @@ public class DoubleAlgebra extends AbstractAlgebra<Double> {
     @Override
     public Double count(Double a) {
         // :NOTE: try to do it in alternative way
-        String newAns = Long.toBinaryString(Double.doubleToRawLongBits(a));
-        double ans = 0;
-        for (int i = 0; i < newAns.length(); i++) {
-            if (newAns.charAt(i) == '1')
-                ans++;
-        }
-        return ans;
+        return (double) Long.bitCount(Double.doubleToLongBits(a));
     }
 
     public Double add(Double a, Double b) {

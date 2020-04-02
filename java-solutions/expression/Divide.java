@@ -2,7 +2,7 @@ package expression;
 
 import expression.generic.AbstractAlgebra;
 
-public class Divide<T> extends MathOperations<T> {
+public class Divide<T extends Number> extends MathOperations<T> {
 
     public Divide(TripleExpression<T> firstA, TripleExpression<T> secondA, AbstractAlgebra<T> algebra) {
         super(firstA, secondA, algebra);

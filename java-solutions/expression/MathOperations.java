@@ -4,7 +4,7 @@ import expression.generic.AbstractAlgebra;
 
 import java.util.Objects;
 
-public abstract class MathOperations<T> implements TripleExpression<T> {
+public abstract class MathOperations<T extends Number> implements TripleExpression<T> {
     protected TripleExpression<T> first;
     protected TripleExpression<T> second;
     protected AbstractAlgebra<T> algebra;
@@ -31,7 +31,7 @@ public abstract class MathOperations<T> implements TripleExpression<T> {
             return true;
         if (expression == null || expression.getClass() != this.getClass())
             return false;
-        MathOperations exp = (MathOperations) expression;
+        MathOperations<?> exp = (MathOperations<?>) expression;
         return this.first.equals(exp.first) && second.equals(exp.second);
     }
 }

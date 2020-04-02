@@ -5,10 +5,6 @@ import expression.exceptions.ExpectedArithmeticActionException;
 import expression.exceptions.ParserException;
 import expression.exceptions.WrongBracketsBalanceException;
 
-/**
- * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
- */
-public interface Parser<T> {
-    TripleExpression<T> parse(String expression) throws ParserException, ParserException, WrongBracketsBalanceException, ExpectedArithmeticActionException;
-
+public interface Parser<T extends Number> {
+    TripleExpression<T> parse(String expression) throws ParserException;
 }

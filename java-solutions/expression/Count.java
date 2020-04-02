@@ -2,7 +2,7 @@ package expression;
 
 import expression.generic.AbstractAlgebra;
 
-public class Count<T> implements TripleExpression<T> {
+public class Count<T extends Number> implements TripleExpression<T> {
     private TripleExpression<T> count;
     private AbstractAlgebra<T> algebra;
 

@@ -2,7 +2,7 @@ package expression;
 
 import expression.generic.AbstractAlgebra;
 
-public class Const<T> implements TripleExpression<T>{
+public class Const<T extends Number> implements TripleExpression<T>{
     private T arg;
 
     public Const(T cnt) {

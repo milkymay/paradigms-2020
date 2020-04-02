@@ -29,7 +29,7 @@ public class GenericTabulator implements Tabulator {
         }
     }
 
-    private <T> Object[][][] setTable(Function<Integer, T> cast, TripleExpression<T> expression, int x1, int x2, int y1, int  y2, int z1, int z2) {
+    private <T extends Number> Object[][][] setTable(Function<Integer, T> cast, TripleExpression<T> expression, int x1, int x2, int y1, int  y2, int z1, int z2) {
         Object[][][] result = new Object[x2 - x1 + 1][y2 - y1 + 1][z2 - z1 + 1];
         for (int x = 0; x <= x2 - x1; x++) {
             for (int y = 0; y <= y2 - y1; y++) {

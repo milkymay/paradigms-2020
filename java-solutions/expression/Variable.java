@@ -1,6 +1,6 @@
 package expression;
 
-public class Variable<T> implements TripleExpression<T> {
+public class Variable<T extends Number> implements TripleExpression<T> {
     private String arg;
     public Variable (String arg) {
         this.arg = arg;

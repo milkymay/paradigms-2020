@@ -7,7 +7,7 @@ import expression.exceptions.*;
 import expression.generic.AbstractAlgebra;
 
 // :NOTE: where is parameterization of Parser?
-public class ExpressionParser<T> implements Parser {
+public class ExpressionParser<T extends Number> implements Parser<T> {
     private String expression;
     private int len;
     private int pos;
@@ -49,7 +49,7 @@ public class ExpressionParser<T> implements Parser {
             return 1;
         }
     }
-    public TripleExpression<T> parse(String expression) throws ParserException, WrongBracketsBalanceException {
+    public TripleExpression<T> parse(String expression) throws ParserException {
         int balance = 0;
         for (int i = 0; i < expression.length(); i++) {
             balance += expression.charAt(i) == '(' ? 1 : expression.charAt(i) == ')' ? -1 : 0;
