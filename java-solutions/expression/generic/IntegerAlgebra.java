@@ -64,6 +64,7 @@ public class IntegerAlgebra extends AbstractAlgebra<Integer> {
     }
 
     public Integer count(Integer a) {
+        // :NOTE: this method should be invoked in static way
         return a.bitCount(a);
     }
 

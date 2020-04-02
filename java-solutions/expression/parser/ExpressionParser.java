@@ -6,6 +6,7 @@ import expression.Negate;
 import expression.exceptions.*;
 import expression.generic.AbstractAlgebra;
 
+// :NOTE: where is parameterization of Parser?
 public class ExpressionParser<T> implements Parser {
     private String expression;
     private int len;
