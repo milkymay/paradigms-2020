@@ -2,6 +2,7 @@ package expression.generic;
 
 import expression.exceptions.ParserException;
 
+// :NOTE: why it's not an interface?
 public abstract class AbstractAlgebra<T> {
     public abstract T count(T a);
 

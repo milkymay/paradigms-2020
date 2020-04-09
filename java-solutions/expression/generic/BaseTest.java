@@ -8,6 +8,7 @@ import java.util.*;
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
+// :NOTE: test class in repository!
 public abstract strictfp class BaseTest extends Asserts {
     protected final Random random = new Random(7240958270485L);
 
