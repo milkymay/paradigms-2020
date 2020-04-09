@@ -1,5 +1,6 @@
 "use strict";
 
+// :NOTE: why it's not const?
 let constConstruct = function(value, str) {
     this.value = value;
     this.str = str;
