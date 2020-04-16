@@ -162,11 +162,7 @@ const parsePrefix = function (expression) {
                 if (OPERATIONS[operation][1] > args.length) {
                     throw new MissingOperandException(operation);
                 } else if (OPERATIONS[operation][1] < args.length) {
-<<<<<<< HEAD
                     throw new ExtraOperandsException(this.curInd);
-=======
-                    throw new TooMuchOperandsException(this.curInd);
->>>>>>> 36d9190a877fd09143b6fd7c46be313707ed3a0d
                 }
                 return new OPERATIONS[operation][0](...args);
             } else {
