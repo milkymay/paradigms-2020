@@ -162,7 +162,11 @@ const parsePrefix = function (expression) {
                 if (OPERATIONS[operation][1] > args.length) {
                     throw new MissingOperandException(operation);
                 } else if (OPERATIONS[operation][1] < args.length) {
+<<<<<<< HEAD
                     throw new ExtraOperandsException(this.curInd);
+=======
+                    throw new TooMuchOperandsException(this.curInd);
+>>>>>>> 36d9190a877fd09143b6fd7c46be313707ed3a0d
                 }
                 return new OPERATIONS[operation][0](...args);
             } else {
@@ -196,7 +200,7 @@ const Exception = function (name, text) {
 
 const MissingCloseBracketException = Exception("MissingCloseBracketException", "Close bracket expected at ")
 const MissingOperandException = Exception("MissingOperandException", "Not enough operands for operation at ");
-const ExtraOperandsException = Exception("TooMuchOperandsException", "Too much operands for operation at ");
+const ExtraOperandsException = Exception("ExtraOperandsException", "Extra operands for operation at ");
 const MissingOperationException = Exception("MissingOperationException", "Missing operation at ");
 const UnexpectedSymbolException = Exception("UnexpectedSymbolException", "Unexpected symbol at ");
 const EndOfExpressionExpected = Exception("EndOfExpressionExpected", "End of expression expected at ");
