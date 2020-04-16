@@ -1,5 +1,7 @@
 "use strict";
 
+// :NOTE: unresolved merge conflicts -> tests failed
+
 const constConstruct = function(value, str) {
     this.value = value;
     this.str = str;
