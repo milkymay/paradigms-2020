@@ -1,3 +1,5 @@
+ ;delay
+
 (defn v+ [& a] (reduce (fn [a b]
                            {:pre [(= (count a) (count b))]
                             :post [(= (count %) (count b))]}
@@ -60,6 +62,14 @@
                               {:pre [(= (count (transpose a)) (count b))]
                                :post [(= (count %) (count a)) (= (count (transpose %)) (count (transpose b)))]}
                               (mapv (fn [x] (m*v (transpose b) x)) a)) a b))
-	
 
+
+(defn Shapeless [f & args]
+      (if (number? (first args))
+        (apply f args)
+        (apply mapv (partial Shapeless f) args)))
+
+(defn s+ [& args] (apply (partial Shapeless +) args))
+(defn s- [& args] (apply (partial Shapeless -) args))
+(defn s* [& args] (apply (partial Shapeless *) args))
 
