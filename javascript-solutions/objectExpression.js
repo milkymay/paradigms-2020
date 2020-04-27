@@ -33,26 +33,6 @@ const varConstruct = function(name) {
     Object.setPrototypeOf(this, shape);
 };
 
-const abstractOperation = function(sign, operation, args) {
-    this.sign = sign;
-    this.operation = operation;
-    this.args = args;
-    let shape = {
-        toString: function() {
-            return this.args.map(x => x.toString()).join(' ') + ' ' + this.sign;
-        },
-        prefix: function() {
-            return "(" + this.sign + " " + this.args.map(function (arg) {
-                return arg.prefix();
-            }).join(" ") + ")";
-        },
-        evaluate: function(...vars) {
-            return this.operation(...this.args.map(x => x.evaluate(...vars)));
-        }
-    };
-    Object.setPrototypeOf(this, shape);
-};
-
 const VARIABLES = {
     "x": 0,
     "y": 1,
@@ -65,30 +45,57 @@ let Const = function(val) {
 let Variable = function(name) {
     varConstruct.call(this, name);
 }
+
 // :NOTE: copy-paste code for operation declaration (at least call `abstractOperation.call`)
-let Add = function(...args) {
-    abstractOperation.call(this, "+", (a, b) => a + b, args);
-}
-let Subtract = function(...args) {
-    abstractOperation.call(this, "-", (a, b) => a - b, args);
-}
-let Multiply = function(...args) {
-    abstractOperation.call(this, "*", (a, b) => a * b, args);
-}
-let Divide = function(...args) {
-    abstractOperation.call(this, "/", (a, b) => a / b, args);
-}
-let Negate = function(...args) {
-    abstractOperation.call(this, "negate", a => -a, args);
-}
 
-let Sinh = function(...args) {
-    abstractOperation.call(this, "sinh", a => Math.sinh(a), args)
-}
-let Cosh = function(...args) {
-    abstractOperation.call(this, "cosh", a => Math.cosh(a), args)
-}
+const abstractOperation = function (...operands) {
+    this.args = function () {
+        return operands;
+    }
+};
 
+abstractOperation.prototype.toString = function() {
+    return this.args().join(" ") + " " + this.getSign();
+};
+
+abstractOperation.prototype.prefix = function() {
+    return "(" + this.getSign() + " " + this.args().map(function (operand) {
+        return operand.prefix();
+    }).join(" ") + ")";
+};
+
+abstractOperation.prototype.evaluate = function(...vars) {
+    const result = this.args().map(function (operand) {
+        return operand.evaluate(...vars);
+    });
+    return this.operation(...result);
+};
+
+const createOperation = function (operation, sign) {
+    const result = function (...operands) {
+        abstractOperation.apply(this, operands);
+    };
+    result.prototype = new abstractOperation;
+    result.prototype.operation = operation;
+    result.prototype.getSign = function () {
+        return sign;
+    };
+    return result;
+};
+
+const Add = createOperation((a, b) => a + b,"+");
+
+const Subtract = createOperation((a, b) => a - b,"-");
+
+const Multiply = createOperation((a, b) => a * b,"*");
+
+const Divide = createOperation((a, b) => a / b,"/");
+
+const Negate = createOperation(a => -a,"negate");
+
+const Sinh = createOperation(a => Math.sinh(a), "sinh");
+
+const Cosh = createOperation(a => Math.cosh(a), "cosh");
 
 const OPERATIONS = {
     "+": [Add, 2],
