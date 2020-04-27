@@ -1,7 +1,5 @@
 "use strict";
 
-// :NOTE: unresolved merge conflicts -> tests failed
-
 const constConstruct = function(value, str) {
     this.value = value;
     this.str = str;
@@ -67,6 +65,7 @@ let Const = function(val) {
 let Variable = function(name) {
     varConstruct.call(this, name);
 }
+// :NOTE: copy-paste code for operation declaration (at least call `abstractOperation.call`)
 let Add = function(...args) {
     abstractOperation.call(this, "+", (a, b) => a + b, args);
 }

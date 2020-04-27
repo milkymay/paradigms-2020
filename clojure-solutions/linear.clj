@@ -1,4 +1,4 @@
-; delay
+;delay
 
 (defn v+ [& a] (reduce (fn [a b]
                            {:pre [(= (count a) (count b))]
