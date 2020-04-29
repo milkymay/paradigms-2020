@@ -1,10 +1,18 @@
 (defn abstractNaryOperation [func op & args]
       (fn [vars]
-          (func op (map (fn [x] (x vars)) args))))
+          (func op
+              (map
+                  (fn [x] (x vars))
+                  args)
+          )
+      )
+)
 
 (defn abstractUnaryOperation [f x]
       (fn [vars]
-          (f (x vars))))
+          (f (x vars))
+    )
+)
 
 (defn variable [name] (fn [vars] (vars name)))
 (defn constant [arg] (constantly arg))
@@ -13,11 +21,11 @@
 (def multiply (partial abstractNaryOperation apply *))
 (def subtract (partial abstractNaryOperation apply -))
 (def add (partial abstractNaryOperation apply +))
-;(def min (partial abstractNaryOperation reduce (fn [a b] (Math/min a b))))
-;(def max (partial abstractNaryOperation reduce (fn [a b] (Math/max a b))))
+(def min (partial abstractNaryOperation reduce (fn [a b] (Math/min a b))))
+(def max (partial abstractNaryOperation reduce (fn [a b] (Math/max a b))))
 (def negate (partial abstractUnaryOperation -))
-;(def exp (partial abstractUnaryOperation (fn [a] (Math/exp a))))
-;(def ln (partial abstractUnaryOperation (fn [a] (Math/ln a))))
+(def exp (partial abstractUnaryOperation (fn [a] (Math/exp (double a)))))
+(def ln (partial abstractUnaryOperation (fn [a] (Math/log (Math/abs a)))))
 
 
 (def variables
@@ -30,7 +38,11 @@
    'negate negate
    '-      subtract
    '*      multiply
-   '/      divide})
+   '/      divide
+   'exp    exp
+   'ln     ln
+   'min    min
+   'max    max})
 
 (defn parse [expr]
       (cond
