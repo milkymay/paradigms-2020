@@ -54,23 +54,6 @@ const abstractOperation = function (...operands) {
     }
 };
 
-abstractOperation.prototype.toString = function() {
-    return this.args().join(" ") + " " + this.getSign();
-};
-
-abstractOperation.prototype.prefix = function() {
-    return "(" + this.getSign() + " " + this.args().map(function (operand) {
-        return operand.prefix();
-    }).join(" ") + ")";
-};
-
-abstractOperation.prototype.evaluate = function(...vars) {
-    const result = this.args().map(function (operand) {
-        return operand.evaluate(...vars);
-    });
-    return this.operation(...result);
-};
-
 const createOperation = function (operation, sign) {
     const result = function (...operands) {
         abstractOperation.apply(this, operands);
@@ -79,6 +62,22 @@ const createOperation = function (operation, sign) {
     result.prototype.operation = operation;
     result.prototype.getSign = function () {
         return sign;
+    };
+    result.prototype.toString = function() {
+        return this.args().join(" ") + " " + this.getSign();
+    };
+
+    result.prototype.prefix = function() {
+        return "(" + this.getSign() + " " + this.args().map(function (operand) {
+            return operand.prefix();
+        }).join(" ") + ")";
+    };
+
+    result.prototype.evaluate = function(...vars) {
+        const result = this.args().map(function (operand) {
+            return operand.evaluate(...vars);
+        });
+        return this.operation(...result);
     };
     return result;
 };
@@ -106,6 +105,7 @@ const OPERATIONS = {
     "sinh" : [Sinh, 1],
     "cosh" : [Cosh, 1]
 };
+
 const isDigit = function (symbol) {
     return "0" <= symbol && symbol <= "9";
 };
@@ -119,6 +119,27 @@ const Parser = function (expression, parse) {
     this.parse = parse;
     this.curInd = 0;
     this.curToken = "";
+    this.skipWhitespace = function () {
+        while (this.curInd < this.expression.length && this.expression[this.curInd] === " ") {this.curInd++; }
+    };
+
+    this.nextToken = function() {
+        let res = "";
+        if (isBracket(this.expression[this.curInd])) {
+            res = this.expression[this.curInd];
+            this.curInd++;
+        } else {
+            let end = this.curInd;
+            while (!isBracket(this.expression[end]) &&
+            this.expression[end] !== " " &&
+            end < this.expression.length) {end++; }
+            res = this.expression.slice(this.curInd, end);
+            this.curInd = end;
+        }
+        this.skipWhitespace();
+        this.curToken = res;
+    };
+
 };
 
 const isNumber = function (number) {
@@ -129,27 +150,6 @@ const isNumber = function (number) {
     }
     while (isDigit(number[index]) && index < number.length) { index++; }
     return index === number.length;
-};
-
-Parser.prototype.skipWhitespace = function () {
-    while (this.curInd < this.expression.length && this.expression[this.curInd] === " ") {this.curInd++; }
-};
-
-Parser.prototype.nextToken = function() {
-    let res = "";
-    if (isBracket(this.expression[this.curInd])) { //????
-        res = this.expression[this.curInd];
-        this.curInd++;
-    } else {
-        let end = this.curInd;
-        while (!isBracket(this.expression[end]) &&
-        this.expression[end] !== " " &&
-        end < this.expression.length) {end++; }
-        res = this.expression.slice(this.curInd, end);
-        this.curInd = end;
-    }
-    this.skipWhitespace();
-    this.curToken = res;
 };
 
 const parsePrefix = function (expression) {
@@ -203,9 +203,10 @@ const Exception = function (name, text) {
 };
 
 const MissingCloseBracketException = Exception("MissingCloseBracketException", "Close bracket expected at ")
-const MissingOperandException = Exception("MissingOperandException", "Not enough operands for operation at ");
+const MissingOperandException = Exception("MissingOperandException", "Not enough operands for operation ");
 const ExtraOperandsException = Exception("ExtraOperandsException", "Extra operands for operation at ");
 const MissingOperationException = Exception("MissingOperationException", "Missing operation at ");
 const UnexpectedSymbolException = Exception("UnexpectedSymbolException", "Unexpected symbol at ");
 const EndOfExpressionExpected = Exception("EndOfExpressionExpected", "End of expression expected at ");
 
+let a = new Add(new Const("10"), new Variable("x"));
