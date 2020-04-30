@@ -39,14 +39,13 @@ const VARIABLES = {
     "z" : 2
 }
 
+// :NOTE: why it's not const?
 let Const = function(val) {
     constConstruct.call(this, val, val.toString());
 }
 let Variable = function(name) {
     varConstruct.call(this, name);
 }
-
-// :NOTE: copy-paste code for operation declaration (at least call `abstractOperation.call`)
 
 const abstractOperation = function (...operands) {
     this.args = function () {
