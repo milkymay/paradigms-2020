@@ -1,3 +1,5 @@
+;delay
+
 (defn abstractNaryOperation [func op & args]
       (fn [vars]
           (func op
@@ -26,6 +28,8 @@
 (def negate (partial abstractUnaryOperation -))
 (def exp (partial abstractUnaryOperation (fn [a] (Math/exp (double a)))))
 (def ln (partial abstractUnaryOperation (fn [a] (Math/log (Math/abs a)))))
+(defn avg [& args] (fn [vars] (/ ((apply add args) vars) (count args))))
+(defn med [& args] (fn [vars] (nth (sort (map (fn [x] (x vars)) args)) (/ (count args) 2))))
 
 
 (def variables
@@ -42,16 +46,23 @@
    'exp    exp
    'ln     ln
    'min    min
-   'max    max})
+   'max    max
+   'avg    avg
+   'med    med})
 
 (defn parse [expr]
       (cond
         (list? expr)
-        (apply (operations (first expr))
-               (map parse (rest expr)))
-        (number? expr) (constant expr)
-        (contains? variables expr) (variables expr)
-        (contains? operations expr) (operations expr)))
+          (apply (operations (first expr))
+                 (map parse (rest expr)))
+        (number? expr)
+          (constant expr)
+        (contains? variables expr)
+          (variables expr)
+        (contains? operations expr)
+          (operations expr)
+      )
+)
 
 (defn parseFunction [expression]
       (parse (read-string expression)))

@@ -208,5 +208,3 @@ const ExtraOperandsException = Exception("ExtraOperandsException", "Extra operan
 const MissingOperationException = Exception("MissingOperationException", "Missing operation at ");
 const UnexpectedSymbolException = Exception("UnexpectedSymbolException", "Unexpected symbol at ");
 const EndOfExpressionExpected = Exception("EndOfExpressionExpected", "End of expression expected at ");
-
-let a = new Add(new Const("10"), new Variable("x"));
