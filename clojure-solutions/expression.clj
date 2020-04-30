@@ -30,6 +30,10 @@
 (def ln (partial abstractUnaryOperation (fn [a] (Math/log (Math/abs a)))))
 (defn avg [& args] (fn [vars] (/ ((apply add args) vars) (count args))))
 (defn med [& args] (fn [vars] (nth (sort (map (fn [x] (x vars)) args)) (/ (count args) 2))))
+(def pw (partial abstractNaryOperation reduce (fn [a b] (Math/pow a b))))
+(def lg (partial abstractNaryOperation reduce (fn [a b] (/ (Math/log (Math/abs b)) (double (Math/log (Math/abs a)))))))
+
+
 
 
 (def variables
@@ -48,7 +52,9 @@
    'min    min
    'max    max
    'avg    avg
-   'med    med})
+   'med    med
+   'pw     pw
+   'lg     lg})
 
 (defn parse [expr]
       (cond
