@@ -1,5 +1,15 @@
 (defn isVector [a]
-      (reduce (fn [a b] (and a (number? b))) true a))
+      (if (vector? a)
+       (reduce (fn [a b] (and a (number? b))) true a)
+       false))
+
+
+(defn isMatrix [a]
+      (reduce (fn [a b] (and a (isVector b))) true a))
+
+(defn similarCounts [a b]
+      {:pre [(not (number? a)) (not (number? b))]}
+      (== (count a) (count b)))
 
 (defn transpose [a]
       (if (isVector a)
@@ -8,10 +18,10 @@
 )
 
 (defn applyOperation [op args]
+      {:pre [(every? #(not (number? %)) args)]}
       (reduce (fn [a b]
-            {:pre [(= (count a) (count b)) (= (count (transpose a)) (count (transpose b)))
-                   (identical? (type a) (type b)) (identical? (type a) (type []))]
-             :post [(= (count %) (count b)) (= (count (transpose %)) (count (transpose b)))]}
+            {:pre [(or (and (isVector a) (isVector b)) (and (isMatrix a) (isMatrix b)))
+                   (similarCounts a b) (similarCounts (transpose a) (transpose b))]}
             (mapv op a b)) args)
 )
 
@@ -20,7 +30,7 @@
 (defn v* [& a] (applyOperation * a))
 
 (defn v*s [a & b]
-      (reduce (fn [a b]
+      (reduce (fn [a b] {:pre [(number? b)]}
             (mapv (fn [x] (* x b)) a)) a b)
 )
 
@@ -31,7 +41,8 @@
 )
 
 (defn scalar [a & b]
-      (reduce (fn [a b] (apply + (v* a b))) a b)
+      (reduce (fn [a b] {:pre [(isVector a) (isVector b)]}
+            (apply + (v* a b))) a b)
 )
 
 (defn det3 [a b n1 n2]
@@ -39,8 +50,7 @@
 )
 
 (defn vect [a & b] (reduce (fn [a b]
-           {:pre [(= (count b) (count a)) (identical? (type a) (type b)) (identical? (type a) (type [])) ()]
-            :post [(= (count %) (count b))]}
+           {:pre [(isVector a) (isVector b) (similarCounts a b)]}
            (vector (det3 a b 1 2) (- (det3 a b 0 2)) (det3 a b 0 1))) a b)
 )
 
@@ -49,7 +59,8 @@
 )
 
 (defn m*s [a & b]
-      (reduce (fn [a b] (mapv (fn [x] (v*s x b)) a)) a b)
+      (reduce (fn [a b] {:pre [(number? b)]}
+            (mapv (fn [x] (v*s x b)) a)) a b)
 )
 
 (defn m- [& a]
@@ -64,15 +75,13 @@
 
 (defn m*v [a & b]
       (reduce (fn [a b]
-            {:pre [(= (count (transpose a)) (count b))]
-             :post [(= (count %) (count a)) (identical? (type %) (type b)) (identical? (type %) (type []))]}
+            {:pre [(= (count (transpose a)) (count b))]}
             (mapv (fn [x] (scalar x b)) a)) a b)
 )
 
 (defn m*m [a & b]
       (reduce (fn [a b]
-          {:pre [(= (count (transpose a)) (count b))]
-           :post [(= (count %) (count a)) (= (count (transpose %)) (count (transpose b)))]}
+          {:pre [(= (count (transpose a)) (count b))]}
           (mapv (fn [x] (m*v (transpose b) x)) a)) a b)
 )
 
@@ -86,3 +95,4 @@
 (defn s+ [& args] (apply (partial Shapeless +) args))
 (defn s- [& args] (apply (partial Shapeless -) args))
 (defn s* [& args] (apply (partial Shapeless *) args))
+

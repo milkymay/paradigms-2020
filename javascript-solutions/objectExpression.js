@@ -39,11 +39,10 @@ const VARIABLES = {
     "z" : 2
 }
 
-// :NOTE: why it's not const?
-let Const = function(val) {
+const Const = function(val) {
     constConstruct.call(this, val, val.toString());
 }
-let Variable = function(name) {
+const Variable = function(name) {
     varConstruct.call(this, name);
 }
 
