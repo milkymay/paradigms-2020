@@ -1,98 +1,66 @@
-(defn isVector [a]
-      (if (vector? a)
-       (reduce (fn [a b] (and a (number? b))) true a)
-       false))
+;review
 
+(defn checkSizes [args]
+      (every? #(== (count (first args)) (count %)) args))
 
-(defn isMatrix [a]
-      (reduce (fn [a b] (and a (isVector b))) true a))
+(defn checkVectors [vectors]
+      (every? #(and (vector? %) (every? number? %)) vectors))
 
-(defn similarCounts [a b]
-      {:pre [(not (number? a)) (not (number? b))]}
-      (== (count a) (count b)))
+(defn checkMatrix [matrix]
+      (every? #(and (vector? %) (and (checkVectors %) (checkSizes %))) matrix))
 
 (defn transpose [a]
-      (if (isVector a)
-      (mapv (fn [x] [x]) a)
       (apply mapv vector a))
-)
 
-(defn applyOperation [op args]
-      {:pre [(every? #(not (number? %)) args)]}
-      (reduce (fn [a b]
-            {:pre [(or (and (isVector a) (isVector b)) (and (isMatrix a) (isMatrix b)))
-                   (similarCounts a b) (similarCounts (transpose a) (transpose b))]}
-            (mapv op a b)) args)
-)
+(defn abstractVectorOperation [f & args]
+      {:pre [(and (checkVectors args) (checkSizes args)) ]}
+      (apply mapv f args))
 
-(defn v+ [& a] (applyOperation + a))
+(defn abstractMatrixOperation [f & args]
+      {:pre [(checkMatrix args) (checkSizes args)]}
+      (apply mapv f args))
 
-(defn v* [& a] (applyOperation * a))
+(def v+ (partial abstractVectorOperation +))
+(def v* (partial abstractVectorOperation *))
+(def v- (partial abstractVectorOperation -))
 
 (defn v*s [a & b]
       (reduce (fn [a b] {:pre [(number? b)]}
-            (mapv (fn [x] (* x b)) a)) a b)
-)
+            (mapv #(* % b) a)) a b))
 
-(defn v- [& a]
-      (if (empty? (rest a))
-      (v*s (first a) -1)
-      (applyOperation - a))
-)
-
-(defn scalar [a & b]
-      (reduce (fn [a b] {:pre [(isVector a) (isVector b)]}
-            (apply + (v* a b))) a b)
-)
+(defn scalar [& a]
+      {:pre [(checkVectors a) (checkSizes a)]}
+      (apply + (apply v* a)))
 
 (defn det3 [a b n1 n2]
-      (- (* (nth a n1) (nth b n2)) (* (nth a n2) (nth b n1)))
-)
+      (- (* (nth a n1) (nth b n2)) (* (nth a n2) (nth b n1))))
 
-(defn vect [a & b] (reduce (fn [a b]
-           {:pre [(isVector a) (isVector b) (similarCounts a b)]}
-           (vector (det3 a b 1 2) (- (det3 a b 0 2)) (det3 a b 0 1))) a b)
-)
-
-(defn m+ [& a]
-      (applyOperation v+ a)
-)
+(defn vect [& a] {:pre [(checkVectors a) (checkSizes a)]}
+      (reduce #(vector (det3 %1 %2 1 2) (- (det3 %1 %2 0 2)) (det3 %1 %2 0 1)) a))
 
 (defn m*s [a & b]
       (reduce (fn [a b] {:pre [(number? b)]}
-            (mapv (fn [x] (v*s x b)) a)) a b)
-)
+            (mapv #(v*s % b) a)) a b))
 
-(defn m- [& a]
-      (if (empty? (rest a))
-      (m*s (first a) -1)
-      (applyOperation v- a))
-)
-
-(defn m* [& a]
-      (applyOperation v* a)
-)
+(def m+ (partial abstractMatrixOperation v+))
+(def m- (partial abstractMatrixOperation v-))
+(def m* (partial abstractMatrixOperation v*))
 
 (defn m*v [a & b]
       (reduce (fn [a b]
             {:pre [(= (count (transpose a)) (count b))]}
-            (mapv (fn [x] (scalar x b)) a)) a b)
-)
+            (mapv #(scalar % b) a)) a b))
 
 (defn m*m [a & b]
       (reduce (fn [a b]
           {:pre [(= (count (transpose a)) (count b))]}
-          (mapv (fn [x] (m*v (transpose b) x)) a)) a b)
-)
+          (mapv #(m*v (transpose b) %) a)) a b))
 
-
-(defn Shapeless [f & args]
+(defn abstractShapelessOperation [f & args]
       (if (number? (first args))
       (apply f args)
-      (apply mapv (partial Shapeless f) args))
-)
+      (apply mapv (partial abstractShapelessOperation f) args)))
 
-(defn s+ [& args] (apply (partial Shapeless +) args))
-(defn s- [& args] (apply (partial Shapeless -) args))
-(defn s* [& args] (apply (partial Shapeless *) args))
-
+(defn s+ [& args] (apply (partial abstractShapelessOperation +) args))
+(defn s- [& args] (apply (partial abstractShapelessOperation -) args))
+(defn s* [& args] (apply (partial abstractShapelessOperation *) args))
