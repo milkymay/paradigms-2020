@@ -140,7 +140,6 @@
                  (Constant 2)
                  (Sqrt (operandByInd this 0))))))))
 
-
 (def objectOperations
   {
    '+      Add
