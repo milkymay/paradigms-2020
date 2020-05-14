@@ -9,6 +9,7 @@
 (defn variable [name] (fn [vars] (vars name)))
 (defn constant [val] (constantly val))
 
+(comment "common 1")
 (def divide (partial abstractNaryOperation reduce (fn [a b] (/ a (double b)))))
 (def multiply (partial abstractNaryOperation apply *))
 (def subtract (partial abstractNaryOperation apply -))
