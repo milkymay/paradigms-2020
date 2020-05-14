@@ -130,8 +130,7 @@
 
 (def Negate (makeOperation 'negate - (fn [this var] (apply Negate (diffEach this var)))))
 
-(def Square
-  (makeOperation 'square #(* % %) (fn [this var] (Multiply (Constant 2) (operandByInd this 0) (diffAtInd var this 0)))))
+(def Square (makeOperation 'square #(* % %) (fn [this var] (Multiply (Constant 2) (operandByInd this 0) (diffAtInd var this 0)))))
 
 (def Sqrt
   (makeOperation 'sqrt #(Math/sqrt (Math/abs %))
