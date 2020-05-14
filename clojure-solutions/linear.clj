@@ -20,10 +20,12 @@
       {:pre [(checkMatrix args) (checkSizes args)]}
       (apply mapv f args))
 
+(comment "common 1")
 (def v+ (partial abstractVectorOperation +))
 (def v* (partial abstractVectorOperation *))
 (def v- (partial abstractVectorOperation -))
 
+(comment "common 3")
 (defn v*s [a & b]
       (reduce (fn [a b] {:pre [(number? b)]}
             (mapv #(* % b) a)) a b))
@@ -61,6 +63,8 @@
       (apply f args)
       (apply mapv (partial abstractShapelessOperation f) args)))
 
+
+(comment "common 1")
 (defn s+ [& args] (apply (partial abstractShapelessOperation +) args))
 (defn s- [& args] (apply (partial abstractShapelessOperation -) args))
 (defn s* [& args] (apply (partial abstractShapelessOperation *) args))
