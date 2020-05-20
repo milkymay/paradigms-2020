@@ -12,41 +12,38 @@
 (defn transpose [a]
       (apply mapv vector a))
 
-(defn abstractVectorOperation [f & args]
-      {:pre [(and (checkVectors args) (checkSizes args)) ]}
-      (apply mapv f args))
+(defn abstractVectorOperation [f]
+      (fn [& args] {:pre [(and (checkVectors args) (checkSizes args))]} (apply mapv f args)))
 
-(defn abstractMatrixOperation [f & args]
-      {:pre [(checkMatrix args) (checkSizes args)]}
-      (apply mapv f args))
+(defn abstractMatrixOperation [f]
+      (fn [& args] {:pre [(checkMatrix args) (checkSizes args)]} (apply mapv f args)))
 
 (comment "common 1")
-(def v+ (partial abstractVectorOperation +))
-(def v* (partial abstractVectorOperation *))
-(def v- (partial abstractVectorOperation -))
+(def v+ (abstractVectorOperation +))
+(def v* (abstractVectorOperation *))
+(def v- (abstractVectorOperation -))
 
 (comment "common 3")
 (defn v*s [a & b]
-      (reduce (fn [a b] {:pre [(number? b)]}
-            (mapv #(* % b) a)) a b))
+      (let [scal (apply * b)] (mapv #(* % scal) a)))
 
 (defn scalar [& a]
-      {:pre [(checkVectors a) (checkSizes a)]}
       (apply + (apply v* a)))
 
 (defn det3 [a b n1 n2]
       (- (* (nth a n1) (nth b n2)) (* (nth a n2) (nth b n1))))
 
-(defn vect [& a] {:pre [(checkVectors a) (checkSizes a)]}
+(defn vect [& a]
+      {:pre [(checkVectors a) (checkSizes a)]}
       (reduce #(vector (det3 %1 %2 1 2) (- (det3 %1 %2 0 2)) (det3 %1 %2 0 1)) a))
 
 (defn m*s [a & b]
       (reduce (fn [a b] {:pre [(number? b)]}
             (mapv #(v*s % b) a)) a b))
 
-(def m+ (partial abstractMatrixOperation v+))
-(def m- (partial abstractMatrixOperation v-))
-(def m* (partial abstractMatrixOperation v*))
+(def m+ (abstractMatrixOperation v+))
+(def m- (abstractMatrixOperation v-))
+(def m* (abstractMatrixOperation v*))
 
 (defn m*v [a & b]
       (reduce (fn [a b]
@@ -55,16 +52,19 @@
 
 (defn m*m [a & b]
       (reduce (fn [a b]
-          {:pre [(= (count (transpose a)) (count b))]}
+          {:pre [(checkMatrix [a]) (checkMatrix [b]) (= (count (transpose a)) (count b)) ]}
           (mapv #(m*v (transpose b) %) a)) a b))
 
-(defn abstractShapelessOperation [f & args]
-      (if (number? (first args))
-      (apply f args)
-      (apply mapv (partial abstractShapelessOperation f) args)))
+(defn abstractShapelessOperation [f]
+      (fn [& args]
+          (if (number? (first args))
+                (apply f args)
+                (apply mapv (abstractShapelessOperation f) args))))
 
 
 (comment "common 1")
-(defn s+ [& args] (apply (partial abstractShapelessOperation +) args))
-(defn s- [& args] (apply (partial abstractShapelessOperation -) args))
-(defn s* [& args] (apply (partial abstractShapelessOperation *) args))
+(def s+ (abstractShapelessOperation +))
+(def s- (abstractShapelessOperation -))
+(def s* (abstractShapelessOperation *))
+
+(m*m (vector (vector 1 2) (vector 3 4) (vector 5 6)) (vector (vector 10) (vector 20)))

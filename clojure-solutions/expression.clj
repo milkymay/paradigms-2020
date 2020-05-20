@@ -1,28 +1,19 @@
-;review HW 10, delay HW 11 (from string 52)
+;review HW 10, review HW 11 (from string 52)
 
-(defn abstractNaryOperation [func op & args]
-      (fn [vars] (func op (map (fn [x] (x vars)) args))))
-
-(defn abstractUnaryOperation [f x]
-      (fn [vars] (f (x vars))))
+(defn abstractOperation [op]
+      (fn [& args] (fn [vars] (apply op (map (fn [x] (x vars)) args)))))
 
 (defn variable [name] (fn [vars] (vars name)))
 (defn constant [val] (constantly val))
 
 (comment "common 1")
-(def divide (partial abstractNaryOperation reduce (fn [a b] (/ a (double b)))))
-(def multiply (partial abstractNaryOperation apply *))
-(def subtract (partial abstractNaryOperation apply -))
-(def add (partial abstractNaryOperation apply +))
-(def negate (partial abstractUnaryOperation -))
-(def pw (partial abstractNaryOperation reduce (fn [a b] (Math/pow a b))))
-(def lg (partial abstractNaryOperation reduce (fn [a b] (/ (Math/log (Math/abs b)) (double (Math/log (Math/abs a)))))))
-
-
-(def variables
-  {'x (variable "x")
-   'y (variable "y")
-   'z (variable "z")})
+(def divide (abstractOperation (fn [a b] (/ a (double b)))))
+(def multiply (abstractOperation *))
+(def subtract (abstractOperation -))
+(def add (abstractOperation +))
+(def negate (abstractOperation -))
+(def pw (abstractOperation #(Math/pow %1 %2)))
+(def lg (abstractOperation #(/ (Math/log (Math/abs %2)) (double (Math/log (Math/abs %1))))))
 
 (def operations
   {'+      add
@@ -40,12 +31,7 @@
                  (map parse (rest expr)))
         (number? expr)
           (constant expr)
-        (contains? variables expr)
-          (variables expr)
-        (contains? operations expr)
-          (operations expr)
-      )
-)
+        :else (variable (str expr))))
 
 (defn parseFunction [expression]
       (parse (read-string expression)))
@@ -75,7 +61,7 @@
 (def Constant)
 (def ConstantPrototype
   (let [number (field :value)]
-       {:toString #(let [value (number %)] (format "%.1f" value))
+       {:toString #(format "%.1f" (number %))
         :evaluate (fn [this _]
                       (number this))
         :diff (fn [_ _] (Constant 0))}))
