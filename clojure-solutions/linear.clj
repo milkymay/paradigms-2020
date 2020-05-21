@@ -9,6 +9,9 @@
 (defn checkMatrix [matrix]
       (every? #(and (vector? %) (and (checkVectors %) (checkSizes %))) matrix))
 
+(defn checkTensors [tensors]
+      (every? #(or (and (vector? %) (every? number? %)) (and (vector? %) (checkTensors %))) tensors))
+
 (defn transpose [a]
       {:pre [(or (number? a) (vector? a))]}
       (apply mapv vector a))
@@ -40,8 +43,7 @@
       (reduce #(vector (det3 %1 %2 1 2) (- (det3 %1 %2 0 2)) (det3 %1 %2 0 1)) a))
 
 (defn m*s [a & b]
-      (reduce (fn [a b] {:pre [(number? b)]}
-            (mapv #(v*s % b) a)) a b))
+      (let [scal (apply * b)] (mapv #(v*s % scal) a)))
 
 (def m+ (abstractMatrixOperation v+))
 (def m- (abstractMatrixOperation v-))
@@ -69,3 +71,22 @@
 (def s+ (abstractShapelessOperation +))
 (def s- (abstractShapelessOperation -))
 (def s* (abstractShapelessOperation *))
+
+(defn checkTensor [tensor]
+      (or (every? number? tensor)
+          (and (every? vector? tensor) (and (checkSizes tensor) (every? checkTensor (apply mapv vector tensor))))))
+
+(defn checkRec [f & tensors]
+      {:pre [(or (number? (first tensors)) (checkSizes tensors))]}
+      (if (vector? (first tensors))
+            (apply mapv (partial checkRec f) tensors)
+            (apply f tensors)))
+
+(defn abstractTensorOperation [f]
+      (fn [& args]
+          {:pre [(checkTensor (first args))]}
+          (apply checkRec f args)))
+
+(def t+ (abstractTensorOperation +))
+(def t- (abstractTensorOperation -))
+(def t* (abstractTensorOperation *))
