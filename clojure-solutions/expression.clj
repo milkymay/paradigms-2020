@@ -1,4 +1,4 @@
-;review HW 10, review HW 11 (from string 52)
+;review HW 10, review HW 11 (from string 39)
 
 (defn abstractOperation [op]
       (fn [& args] (fn [vars] (apply op (map (fn [x] (x vars)) args)))))
@@ -7,7 +7,7 @@
 (defn constant [val] (constantly val))
 
 (comment "common 1")
-(def divide (abstractOperation (fn [a b] (/ a (double b)))))
+(def divide (abstractOperation #(/ %1 (double %2))))
 (def multiply (abstractOperation *))
 (def subtract (abstractOperation -))
 (def add (abstractOperation +))

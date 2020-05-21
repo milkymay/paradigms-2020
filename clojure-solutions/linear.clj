@@ -10,6 +10,7 @@
       (every? #(and (vector? %) (and (checkVectors %) (checkSizes %))) matrix))
 
 (defn transpose [a]
+      {:pre [(or (number? a) (vector? a))]}
       (apply mapv vector a))
 
 (defn abstractVectorOperation [f]
@@ -24,13 +25,14 @@
 (def v- (abstractVectorOperation -))
 
 (comment "common 3")
-(defn v*s [a & b]
+(defn v*s [a & b] {:pre [(every? number? b) (vector? a)]}
       (let [scal (apply * b)] (mapv #(* % scal) a)))
 
-(defn scalar [& a]
+(defn scalar [& a] {:pre [(checkVectors a)]}
       (apply + (apply v* a)))
 
 (defn det3 [a b n1 n2]
+      {:pre [(vector? a) (vector? b) (number? n1) (number? n2)]}
       (- (* (nth a n1) (nth b n2)) (* (nth a n2) (nth b n1))))
 
 (defn vect [& a]
@@ -57,6 +59,7 @@
 
 (defn abstractShapelessOperation [f]
       (fn [& args]
+          {:pre [(or (every? number? args) (and (every? vector? args) (checkSizes args)))]}
           (if (number? (first args))
                 (apply f args)
                 (apply mapv (abstractShapelessOperation f) args))))
@@ -66,5 +69,3 @@
 (def s+ (abstractShapelessOperation +))
 (def s- (abstractShapelessOperation -))
 (def s* (abstractShapelessOperation *))
-
-(m*m (vector (vector 1 2) (vector 3 4) (vector 5 6)) (vector (vector 10) (vector 20)))
