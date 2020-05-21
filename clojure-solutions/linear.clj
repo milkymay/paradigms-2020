@@ -22,12 +22,10 @@
 (defn abstractMatrixOperation [f]
       (fn [& args] {:pre [(checkMatrix args) (checkSizes args)]} (apply mapv f args)))
 
-(comment "common 1")
 (def v+ (abstractVectorOperation +))
 (def v* (abstractVectorOperation *))
 (def v- (abstractVectorOperation -))
 
-(comment "common 3")
 (defn v*s [a & b] {:pre [(every? number? b) (vector? a)]}
       (let [scal (apply * b)] (mapv #(* % scal) a)))
 
@@ -66,8 +64,6 @@
                 (apply f args)
                 (apply mapv (abstractShapelessOperation f) args))))
 
-
-(comment "common 1")
 (def s+ (abstractShapelessOperation +))
 (def s- (abstractShapelessOperation -))
 (def s* (abstractShapelessOperation *))
