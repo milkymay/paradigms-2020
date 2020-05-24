@@ -70,6 +70,7 @@
       {:prototype ConstantPrototype
        :value     val})
 
+(comment ":NOTE: merge or remove prototype of Constant and Variable")
 (def VariablePrototype
   (let  [name (field :value)]
         {:toString #(name %)
@@ -102,6 +103,7 @@
                        :wayToDiff wayToDiff}
            :args  (vec args)}))
 
+(comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
 (def Add (makeOperation '+ + (fn [this var] (apply Add (diffEach this var)))))
 
 (def Subtract (makeOperation '- - (fn [this var] (apply Subtract (diffEach this var)))))
