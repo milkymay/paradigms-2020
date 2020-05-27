@@ -59,27 +59,24 @@
 (def args (field :args))
 
 (def Constant)
-(def ConstantPrototype
-  (let [number (field :value)]
-       {:toString #(format "%.1f" (number %))
-        :evaluate (fn [this _]
-                      (number this))
-        :diff (fn [_ _] (Constant 0))}))
 
 (defn Constant [val]
-      {:prototype ConstantPrototype
-       :value     val})
+      (let [number (field :value)] {
+          :toString #(format "%.1f" (number %))
+          :evaluate (fn [this _]
+                        (number this))
+          :diff (fn [_ _] (Constant 0))
+          :value     val}))
 
 (comment ":NOTE: merge or remove prototype of Constant and Variable")
-(def VariablePrototype
-  (let  [name (field :value)]
-        {:toString #(name %)
-         :evaluate #(%2 (name %1))
-         :diff     #(if (= (name %1) %2) (Constant 1) (Constant 0))}))
 
 (defn Variable [val]
-      {:prototype VariablePrototype
-       :value     val})
+      (let [name (field :value)] {
+          :toString #(name %)
+          :evaluate #(%2 (name %1))
+          :diff     #(if (= (name %1) %2) (Constant 1) (Constant 0))
+          :value     val})
+      )
 
 (def diffAtInd (fn [var this ind] (diff ((args this) ind) var)))
 (def diffEach #(map (fn [arg] (diff arg %2)) (args %1)))
@@ -104,22 +101,25 @@
            :args  (vec args)}))
 
 (comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
-(def Add (makeOperation '+ + (fn [this var] (apply Add (diffEach this var)))))
 
-(def Subtract (makeOperation '- - (fn [this var] (apply Subtract (diffEach this var)))))
+(defn Func [Op] (fn [this var] (apply Op (diffEach this var))))
 
-(def Multiply (makeOperation '* * (fn [this var]
-                                         (Add (Multiply (operandByInd this 0) (diffAtInd var this 1))
-                                              (Multiply (operandByInd this 1) (diffAtInd var this 0))))))
+(def Add (makeOperation '+ + (Func #'Add)))
 
-(def Divide (makeOperation '/ (fn [x y] (/ x (double y)))
-                              (fn [this var] (Divide (Subtract (Multiply (operandByInd this 1) (diffAtInd var this 0))
-                                                               (Multiply (operandByInd this 0) (diffAtInd var this 1)))
-                                                     (Multiply (operandByInd this 1) ((args this) 1))))))
+(def Subtract (makeOperation '- - (Func #'Subtract)))
 
-(def Negate (makeOperation 'negate - (fn [this var] (apply Negate (diffEach this var)))))
+(def Negate (makeOperation 'negate - (Func #'Negate)))
 
-(def Square (makeOperation 'square #(* % %) (fn [this var] (Multiply (Constant 2) (operandByInd this 0) (diffAtInd var this 0)))))
+
+(def Multiply (makeOperation '* * #(Add (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1))
+                                       (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0)))))
+
+(def Divide (makeOperation '/ #(/ %1 (double %2))
+                              #(Divide (Subtract (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0))
+                                                     (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1)))
+                                           (Multiply (operandByInd %1 1) ((args %1) 1)))))
+
+(def Square (makeOperation 'square #(* % %) #(Multiply (Constant 2) (operandByInd %1 0) (diffAtInd %2 %1 0))))
 
 (def Sqrt
   (makeOperation 'sqrt #(Math/sqrt (Math/abs %))
@@ -147,3 +147,4 @@
         :else (Variable (str expr))))
 
 (def parseObject (comp parseObjectExpression read-string))
+
