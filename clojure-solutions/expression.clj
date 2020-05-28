@@ -6,11 +6,11 @@
 (defn variable [name] (fn [vars] (vars name)))
 (def constant constantly)
 
-(comment "common 1")
 (def divide (abstractOperation #(/ %1 (double %2))))
 (def multiply (abstractOperation *))
 (def subtract (abstractOperation -))
 (def add (abstractOperation +))
+(comment ":NOTE: the same as subtract (copy-paste)")
 (def negate (abstractOperation -))
 (def pw (abstractOperation #(Math/pow %1 %2)))
 (def lg (abstractOperation #(/ (Math/log (Math/abs %2)) (double (Math/log (Math/abs %1))))))
