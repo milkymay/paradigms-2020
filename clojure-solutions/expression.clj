@@ -1,4 +1,4 @@
-;review HW 10, review HW 11 (from string 39)
+;review HW 10 hard, review HW 11 hard (from string 43), delay HW 12 (string 163)
 
 (defn abstractOperation [op]
       (fn [& args] (fn [vars] (apply op (map (fn [x] (x vars)) args)))))
@@ -14,6 +14,8 @@
 (def negate (abstractOperation -))
 (def pw (abstractOperation #(Math/pow %1 %2)))
 (def lg (abstractOperation #(/ (Math/log (Math/abs %2)) (double (Math/log (Math/abs %1))))))
+(def avg (abstractOperation #(/ (apply + %&) (count %&))))
+(def med (abstractOperation #(nth (sort %&) (/ (count %&) 2))))
 
 (def operations
   {'+      add
@@ -22,7 +24,9 @@
    '*      multiply
    '/      divide
    'pw     pw
-   'lg     lg})
+   'lg     lg
+   'avg    avg
+   'med    med})
 
 (defn parse [expr]
       (cond
@@ -55,6 +59,7 @@
 
 (def toString (method :toString))
 (def evaluate (method :evaluate))
+(def toStringSuffix (method :toStringSuffix))
 (def diff (method :diff))
 (def args (field :args))
 
@@ -62,20 +67,21 @@
 
 (defn Constant [val]
       (let [number (field :value)] {
-          :toString #(format "%.1f" (number %))
-          :evaluate (fn [this _]
-                        (number this))
-          :diff (fn [_ _] (Constant 0))
-          :value     val}))
+                                    :toString #(format "%.1f" (number %))
+                                    :evaluate (fn [this _] (number this))
+                                    :toStringSuffix  #(format "%.1f" (number %))
+                                    :diff (fn [_ _] (Constant 0))
+                                    :value     val}))
 
 (comment ":NOTE: merge or remove prototype of Constant and Variable")
 
 (defn Variable [val]
       (let [name (field :value)] {
-          :toString #(name %)
-          :evaluate #(%2 (name %1))
-          :diff     #(if (= (name %1) %2) (Constant 1) (Constant 0))
-          :value     val})
+                                  :toString #(name %)
+                                  :evaluate #(%2 (name %1))
+                                  :toStringSuffix #(name %)
+                                  :diff     #(if (= (name %1) %2) (Constant 1) (Constant 0))
+                                  :value     val})
       )
 
 (def diffAtInd (fn [var this ind] (diff ((args this) ind) var)))
@@ -88,6 +94,7 @@
         function (field :operation)
         wayToDiff (method :wayToDiff)]
        {:toString #(str "(" (symbol %) " " (clojure.string/join " " (mapv toString (args %))) ")")
+        :toStringSuffix #(str "(" (clojure.string/join " " (mapv toStringSuffix (args %))) " " (symbol %) ")")
         :evaluate #(apply (function %1) (mapv (fn [arg] (evaluate arg %2)) (args %1)))
         :diff     #(wayToDiff %1 %2)}))
 
@@ -112,33 +119,38 @@
 
 
 (def Multiply (makeOperation '* * #(Add (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1))
-                                       (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0)))))
+                                        (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0)))))
 
 (def Divide (makeOperation '/ #(/ %1 (double %2))
-                              #(Divide (Subtract (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0))
-                                                     (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1)))
-                                           (Multiply (operandByInd %1 1) ((args %1) 1)))))
+                           #(Divide (Subtract (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0))
+                                              (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1)))
+                                    (Multiply (operandByInd %1 1) ((args %1) 1)))))
 
 (def Square (makeOperation 'square #(* % %) #(Multiply (Constant 2) (operandByInd %1 0) (diffAtInd %2 %1 0))))
 
+(def Pow (makeOperation '** #(Math/pow (double %1) (double %2)) (fn [x y] (Constant 0))))
+
+(def Log (makeOperation "//" #(/ (Math/log (Math/abs %2)) (double (Math/log (Math/abs %1)))) nil))
+
 (def Sqrt
   (makeOperation 'sqrt #(Math/sqrt (Math/abs %))
-        (fn [this var] (Multiply (Sqrt (Square (operandByInd this 0)))
-             (diffAtInd var this 0)
-             (Divide (Constant 1) (Multiply (operandByInd this 0)
-                 (Constant 2)
-                 (Sqrt (operandByInd this 0))))))))
+                 (fn [this var] (Multiply (Sqrt (Square (operandByInd this 0)))
+                                          (diffAtInd var this 0)
+                                          (Divide (Constant 1) (Multiply (operandByInd this 0)
+                                                                         (Constant 2)
+                                                                         (Sqrt (operandByInd this 0))))))))
 
-(def objectOperations
-  {
-   '+      Add
-   '-      Subtract
-   '*      Multiply
-   '/      Divide
-   'negate Negate
-   'sqrt Sqrt
-   'square Square
-   })
+(def objectOperations {
+                       '+      Add
+                       '-      Subtract
+                       (symbol "**") Pow
+                       (symbol "//") Log
+                       '*      Multiply
+                       '/      Divide
+                       'negate Negate
+                       'sqrt Sqrt
+                       'square Square
+                       })
 
 (defn parseObjectExpression [expr]
       (cond
@@ -148,3 +160,105 @@
 
 (def parseObject (comp parseObjectExpression read-string))
 
+; HW 12 delay /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+(defn -return [value tail] {:value value :tail tail})
+(def -valid? boolean)
+(def -value :value)
+(def -tail :tail)
+
+(defn _show [result]
+      (if (-valid? result) (str "-> " (pr-str (-value result)) " | " (pr-str (apply str (-tail result)))) "!"))
+(defn tabulate [parser inputs]
+      (run! (fn [input] (printf "    %-10s %s\n" (pr-str input) (_show (parser input)))) inputs))
+
+
+(defn _empty [value] (partial -return value))
+
+(defn _char [p]
+      (fn [[c & cs]]
+          (if (and c (p c)) (-return c cs))))
+
+(defn _map [f result]
+      (if (-valid? result)
+        (-return
+          (f (-value result))
+          (-tail result))))
+
+(defn _combine [f a b]
+      (fn [str]
+          (let [ar ((force a) str)]
+               (if (-valid? ar)
+                 (_map (partial f (-value ar))
+                       ((force b) (-tail ar)))))))
+
+(defn _either [a b]
+      (fn [str]
+          (let [ar ((force a) str)]
+               (if (-valid? ar) ar ((force b) str)))))
+
+(defn _parser [p]
+      (fn [input]
+          (-value ((_combine (fn [v _] v) p (_char #{\u0000})) (str input \u0000)))))
+
+
+(defn +string [p]
+      (fn [[c & cs]]
+          (if (and c (p c)) (-return c cs))))
+(defn +char [chars] (_char (set chars)))
+(defn +char-not [chars] (_char (comp not (set chars))))
+(defn +map [f parser] (comp (partial _map f) parser))
+(def +parser _parser)
+(def +ignore (partial +map (constantly 'ignore)))
+
+(defn iconj [coll value]
+      (if (= value 'ignore) coll (conj coll value)))
+(defn +seq [& ps]
+      (reduce (partial _combine iconj) (_empty []) ps))
+
+(defn +seqf [f & ps] (+map (partial apply f) (apply +seq ps)))
+(defn +seqn [n & ps] (apply +seqf (fn [& vs] (nth vs n)) ps))
+
+(defn +or [p & ps]
+      (reduce _either p ps))
+
+(defn +opt [p]
+      (+or p (_empty nil)))
+
+(defn +star [p]
+      (letfn [(rec [] (+or (+seqf cons p (delay (rec))) (_empty ())))] (rec)))
+
+(defn +plus [p] (+seqf cons p (+star p)))
+
+(defn +str [p] (+map (partial apply str) p))
+(defn +string [st] (apply +seq (mapv #(+char (str %)) st)))
+
+(def *digit (+char "0123456789"))
+(def *number (+map read-string (+str (+plus *digit))))
+(def *double (+map read-string (+seqf str (+opt (+char "-")) *number (+opt (+seqf str (+char ".") *number)))))
+
+(def *string (+seqn 1 (+char "\"") (+str (+star (+char-not "\""))) (+char "\"")))
+
+(def *space (+char " \t\n\r"))
+(def *ws (+ignore (+star *space)))
+(defn or_string [args] (apply +or (mapv #(+string (str %)) args)))
+
+(def OPERATIONS {
+                 '+ Add
+                 '- Subtract
+                 (symbol "**") Pow
+                 (symbol "//")  Log
+                 '* Multiply
+                 '/ Divide
+                 (symbol "negate") Negate})
+
+(def *Const (+seqf #(Constant %) *double))
+(def *Opers (+seqf  #(get OPERATIONS (symbol (apply str %))) (or_string (keys OPERATIONS))))
+(def *Vars (+seqf #(Variable (apply str %)) (or_string ['x 'y 'z])))
+(def *Brackets (+seqf #(apply (nth % 1) (nth % 0)) (+seq (+ignore (+char "(")) *ws
+                                                         (+plus (+seqf identity (+or *Const *Vars (delay *Brackets)) *ws)) *Opers *ws (+ignore (+char ")")) )))
+
+(defn parseObjectSuffix [expr] (nth (-value ((+seq *ws (+or *Const *Vars *Brackets) *ws) expr))0 ))
+
+(print (toString (parseObjectSuffix "(x y **)")))
