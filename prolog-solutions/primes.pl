@@ -23,6 +23,22 @@ composite(N) :- composite_(N), !.
 
 composite(N) :- not(prime(N)), assert(composite_(N)), !.
 
+checkRec(N, [H1 | []]) :-
+	prime(H1), N = H1.
+
+checkRec(N, [H1 | [H2 | T]]) :-
+	prime(H1),
+	0 is mod(N, H1),
+	N1 is div(N, H1),
+	H2 >= H1,
+	checkRec(N1, [H2 | T]).
+
+prime_div(N, Divs) :- prime_div_(N, Divs), !.
+
+prime_div(N, Divs) :- checkRec(N, Divs), assert(prime_div(N, Divs)).
+
+
+
 ordered([H1 | []]) :- !.
 
 ordered([H1 | [H2 | T]]) :-
@@ -52,14 +68,74 @@ prime_divisors(N, Divisors) :-
 
 prime_divs(N, L) :- prime_divs_(N, L), !.
 
-prime_divs(N, L) :- findall(D, prime_factor(N, D), L), assert(prime_divs_(N, L)), !.
+prime_divs(N, L) :-
+    findall(D, prime_factor(N, D), L), assert(prime_divs_(N, L)), !.
 
-prime_factor(N, D) :- find_prime_factor(N, 2, D).
+prime_factor(N, D) :-
+    find_prime_factor(N, 2, D).
 
-find_prime_factor(N, D, D) :- 0 is N mod D.
+find_prime_factor(N, D, D) :-
+    0 is N mod D.
 
 find_prime_factor(N, D, R) :-
     D < N,
     (0 is N mod D ->
-        (N1 is N/D, find_prime_factor(N1, D, R)) ;
-        (D1 is D + 1, find_prime_factor(N, D1, R))).
+    		(N1 is N/D, find_prime_factor(N1, D, R)) ;
+    		(D1 is D + 1, find_prime_factor(N, D1, R))
+    ).
+
+%init(N) :-
+%	nth_prime(N), !.
+
+
+%cnt(1) :- !.
+%cnt(N) :-
+%	N > 1,
+%	N1 is N - 1,
+%	nth_prime(N, P),
+%	assert(nth_prime_(N, P)),
+%	cnt(N1).
+
+next(K, R) :-
+	prime(K),
+	R is K, !.
+
+next(K, R) :-
+	K1 is K + 1,
+	next(K1, R).
+
+nth_prime(1, 2).
+nth_prime(N, P) :-
+	count(3, 2, N, P).
+
+count(Cur, Num, N, P) :-
+	Num is N,
+	P is Cur, !.
+
+count(Cur, Num, N, P) :-
+	Num < N,
+	Num1 is Num + 1,
+	T is Cur + 1,
+	next(T, Cur1),
+	count(Cur1, Num1, N, P).
+
+trans(N, K, []) :-
+	N = 0, !.
+
+trans(N, K, [H | T]) :-
+	N1 is div(N, K),
+	H is mod(N, K),
+	trans(N1, K, T).
+
+compare([], []) :- !.
+compare([H], []) :- fail, !.
+compare([], [H]) :- fail, !.
+
+compare([H | T1], [H | T2]) :-
+	compare(T1, T2).
+
+prime_palindrome(N, K) :-
+	prime(N),
+	trans(N, K, Res),
+	reverse(Res, RevRes),
+	compare(Res, RevRes), !.
