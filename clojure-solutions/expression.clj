@@ -107,8 +107,6 @@
                        :wayToDiff wayToDiff}
            :args  (vec args)}))
 
-(comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
-
 (defn Func [Op] (fn [this var] (apply Op (diffEach this var))))
 
 (def Add (makeOperation '+ + (Func #'Add)))
@@ -117,7 +115,8 @@
 
 (def Negate (makeOperation 'negate - (Func #'Negate)))
 
-
+(comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
+(comment ":NOTE: diffAtInd is not a solution, you sill call diff in each delaration but in other function")
 (def Multiply (makeOperation '* * #(Add (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1))
                                         (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0)))))
 
