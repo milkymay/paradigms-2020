@@ -4,7 +4,7 @@
       (fn [& args] (fn [vars] (apply op (map (fn [x] (x vars)) args)))))
 
 (defn variable [name] (fn [vars] (vars name)))
-(defn constant [val] (constantly val))
+(def constant constantly)
 
 (comment "common 1")
 (def divide (abstractOperation #(/ %1 (double %2))))
@@ -161,7 +161,6 @@
 (def parseObject (comp parseObjectExpression read-string))
 
 ; HW 12 delay /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 (defn -return [value tail] {:value value :tail tail})
 (def -valid? boolean)
