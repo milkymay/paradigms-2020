@@ -1,4 +1,4 @@
-;review HW 10 hard, review HW 11 hard (from string 43), delay HW 12 (string 163)
+;review HW 11 hard (from string 42), review HW 12 easy (string 160)
 
 (defn abstractOperation [op]
       (fn [& args] (fn [vars] (apply op (map (fn [x] (x vars)) args)))))
@@ -10,8 +10,7 @@
 (def multiply (abstractOperation *))
 (def subtract (abstractOperation -))
 (def add (abstractOperation +))
-(comment ":NOTE: the same as subtract (copy-paste)")
-(def negate (abstractOperation -))
+(def negate subtract)
 (def pw (abstractOperation #(Math/pow %1 %2)))
 (def lg (abstractOperation #(/ (Math/log (Math/abs %2)) (double (Math/log (Math/abs %1))))))
 (def avg (abstractOperation #(/ (apply + %&) (count %&))))
@@ -73,8 +72,6 @@
                                     :diff (fn [_ _] (Constant 0))
                                     :value     val}))
 
-(comment ":NOTE: merge or remove prototype of Constant and Variable")
-
 (defn Variable [val]
       (let [name (field :value)] {
                                   :toString #(name %)
@@ -92,40 +89,41 @@
   (let [args (field :args)
         symbol (field :operationName)
         function (field :operation)
-        wayToDiff (method :wayToDiff)]
+        wayToDiff (field :wayToDiff)]
        {:toString #(str "(" (symbol %) " " (clojure.string/join " " (mapv toString (args %))) ")")
         :toStringSuffix #(str "(" (clojure.string/join " " (mapv toStringSuffix (args %))) " " (symbol %) ")")
         :evaluate #(apply (function %1) (mapv (fn [arg] (evaluate arg %2)) (args %1)))
-        :diff     #(wayToDiff %1 %2)}))
+        :diff (fn [this var] (let [vars (args this)
+                                   diffed (mapv #(diff % var) vars)]
+                                  ((wayToDiff this) vars diffed)))}))
 
-(defn makeOperation
-      [operationName operation wayToDiff]
-      (fn [& args]
-          {:prototype {:prototype  abstractOperation
-                       :operationName   operationName
-                       :operation   operation
-                       :wayToDiff wayToDiff}
-           :args  (vec args)}))
+ (defn makeOperation
+       [operationName operation wayToDiff]
+       (fn [& args]
+           {:prototype {:prototype     abstractOperation
+                        :operationName operationName
+                        :operation     operation
+                        :wayToDiff     wayToDiff}
+            :args      (vec args)}))
 
-(defn Func [Op] (fn [this var] (apply Op (diffEach this var))))
 
-(def Add (makeOperation '+ + (Func #'Add)))
+(def Add (makeOperation '+ + #(apply Add %2)))
 
-(def Subtract (makeOperation '- - (Func #'Subtract)))
+(def Subtract (makeOperation '- - #(apply Subtract %2)))
 
-(def Negate (makeOperation 'negate - (Func #'Negate)))
+(def Negate (makeOperation 'negate - #(apply Negate %2)))
 
 (comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
-(comment ":NOTE: diffAtInd is not a solution, you sill call diff in each delaration but in other function")
-(def Multiply (makeOperation '* * #(Add (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1))
-                                        (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0)))))
+(comment ":NOTE: diffAtInd is not a solution, you sill call diff in each declaration but in other function")
+(def Multiply (makeOperation '* * #(Add (Multiply (%1 0) (%2 1))
+                                        (Multiply (%1 1) (%2 0)))))
 
 (def Divide (makeOperation '/ #(/ %1 (double %2))
-                           #(Divide (Subtract (Multiply (operandByInd %1 1) (diffAtInd %2 %1 0))
-                                              (Multiply (operandByInd %1 0) (diffAtInd %2 %1 1)))
-                                    (Multiply (operandByInd %1 1) ((args %1) 1)))))
+                           #(Divide (Subtract (Multiply (%1 1) (%2 0))
+                                              (Multiply (%1 0) (%2 1)))
+                                    (Multiply (%1 1) (%1 1)))))
 
-(def Square (makeOperation 'square #(* % %) #(Multiply (Constant 2) (operandByInd %1 0) (diffAtInd %2 %1 0))))
+(def Square (makeOperation 'square #(* % %) #(Multiply (Constant 2) (%1 0) (%2 0))))
 
 (def Pow (makeOperation '** #(Math/pow (double %1) (double %2)) (fn [x y] (Constant 0))))
 
@@ -133,11 +131,11 @@
 
 (def Sqrt
   (makeOperation 'sqrt #(Math/sqrt (Math/abs %))
-                 (fn [this var] (Multiply (Sqrt (Square (operandByInd this 0)))
-                                          (diffAtInd var this 0)
-                                          (Divide (Constant 1) (Multiply (operandByInd this 0)
+                 #(Multiply (Sqrt (Square (%1 0)))
+                                          (%2 0)
+                                          (Divide (Constant 1) (Multiply (%1 0)
                                                                          (Constant 2)
-                                                                         (Sqrt (operandByInd this 0))))))))
+                                                                         (Sqrt (%1 0)))))))
 
 (def objectOperations {
                        '+      Add
@@ -159,7 +157,7 @@
 
 (def parseObject (comp parseObjectExpression read-string))
 
-; HW 12 delay /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+; HW 12 easy /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 (defn -return [value tail] {:value value :tail tail})
 (def -valid? boolean)
@@ -240,7 +238,7 @@
 
 (def *space (+char " \t\n\r"))
 (def *ws (+ignore (+star *space)))
-(defn or_string [args] (apply +or (mapv #(+string (str %)) args)))
+(defn _str [args] (apply +or (mapv #(+string (str %)) args)))
 
 (def OPERATIONS {
                  '+ Add
@@ -252,11 +250,11 @@
                  (symbol "negate") Negate})
 
 (def *Const (+seqf #(Constant %) *double))
-(def *Opers (+seqf  #(get OPERATIONS (symbol (apply str %))) (or_string (keys OPERATIONS))))
-(def *Vars (+seqf #(Variable (apply str %)) (or_string ['x 'y 'z])))
+(def *Opers (+seqf  #(get OPERATIONS (symbol (apply str %))) (_str (keys OPERATIONS))))
+(def *Vars (+seqf #(Variable (apply str %)) (_str ['x 'y 'z])))
 (def *Brackets (+seqf #(apply (nth % 1) (nth % 0)) (+seq (+ignore (+char "(")) *ws
-                                                         (+plus (+seqf identity (+or *Const *Vars (delay *Brackets)) *ws)) *Opers *ws (+ignore (+char ")")) )))
+                                                         (+plus (+seqf identity (+or *Const *Vars (delay *Brackets)) *ws))
+                                                         *Opers *ws (+ignore (+char ")")))))
 
-(defn parseObjectSuffix [expr] (nth (-value ((+seq *ws (+or *Const *Vars *Brackets) *ws) expr))0 ))
+(defn parseObjectSuffix [expr] (nth (-value ((+seq *ws (+or *Const *Vars *Brackets) *ws) expr)) 0))
 
-(print (toString (parseObjectSuffix "(x y **)")))
