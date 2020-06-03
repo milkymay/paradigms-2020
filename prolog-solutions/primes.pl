@@ -1,4 +1,4 @@
-%delay
+%review
 
 divides(N, D) :- divides_(N, D), !.
 
