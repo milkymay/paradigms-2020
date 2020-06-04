@@ -49,3 +49,14 @@ build([(X, Y) | Tail], T, R) :-
 
 map_build(List, T) :- 
 		build(List, nil, T).
+
+map_minKey(t((TKey,TValue), TY, nil, _), R):-
+		R is TKey, !.
+map_minKey(t((TKey,TValue), TY, TL, TR), R):-
+		map_minKey(TL, R).
+
+		
+map_maxKey(t((TKey,TValue), TY, _, nil), R):-
+		R is TKey, !.
+map_maxKey(t((TKey,TValue), TY, TL, TR), R):-
+		map_maxKey(TR, R).
