@@ -1,4 +1,4 @@
-;review HW 11 hard (from string 42), review HW 12 easy (string 160)
+;review HW 11 hard (from string 42), review HW 12 easy (string 165)
 
 (defn abstractOperation [op]
       (fn [& args] (fn [vars] (apply op (map (fn [x] (x vars)) args)))))
@@ -113,6 +113,10 @@
 
 (def Negate (makeOperation 'negate - #(apply Negate %2)))
 
+(def ZERO (Constant 0))
+(def ONE (Constant 1))
+(def TWO (Constant 2))
+
 (comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
 (comment ":NOTE: diffAtInd is not a solution, you sill call diff in each declaration but in other function")
 (def Multiply (makeOperation '* * #(Add (Multiply (%1 0) (%2 1))
@@ -123,19 +127,19 @@
                                               (Multiply (%1 0) (%2 1)))
                                     (Multiply (%1 1) (%1 1)))))
 
-(def Square (makeOperation 'square #(* % %) #(Multiply (Constant 2) (%1 0) (%2 0))))
+(def Sum (makeOperation 'sum + #(apply Sum %2)))
 
-(def Pow (makeOperation '** #(Math/pow (double %1) (double %2)) (fn [x y] (Constant 0))))
+(def Avg (makeOperation 'avg #(/ (apply + %&) (double (count %&)))  #(Divide (apply Sum %2) (Constant (count %1)))))
+
+(def Square (makeOperation 'square #(* % %) #(Multiply TWO (%1 0) (%2 0))))
+
+(def Pow (makeOperation '** #(Math/pow (double %1) (double %2)) (fn [x y] ONE)))
 
 (def Log (makeOperation "//" #(/ (Math/log (Math/abs %2)) (double (Math/log (Math/abs %1)))) nil))
 
 (def Sqrt
   (makeOperation 'sqrt #(Math/sqrt (Math/abs %))
-                 #(Multiply (Sqrt (Square (%1 0)))
-                                          (%2 0)
-                                          (Divide (Constant 1) (Multiply (%1 0)
-                                                                         (Constant 2)
-                                                                         (Sqrt (%1 0)))))))
+                 #(Multiply (Sqrt (Square (%1 0))) (%2 0) (Divide ONE (Multiply (%1 0) TWO (Sqrt (%1 0)))))))
 
 (def objectOperations {
                        '+      Add
@@ -147,7 +151,8 @@
                        'negate Negate
                        'sqrt Sqrt
                        'square Square
-                       })
+                       'sum Sum
+                       'avg Avg})
 
 (defn parseObjectExpression [expr]
       (cond

@@ -1,12 +1,12 @@
-%delay
+%review
 
 divides(N, D) :- divides_(N, D), !.
 
 divides(N, D) :-
-	D < N,
-	0 is mod(N, D),
+	D < N, 
+	0 is mod(N, D), 
 	assert (divides_ (N, D)), !.
-
+	
 divides(N, D) :-
 	(D * D) =< N,
 	D1 is D + 1,
@@ -16,8 +16,8 @@ prime(N) :- prime_(N), !.
 
 prime(N) :-
 	N > 1,
-	not(divides(N, 2)),
-	assert (prime_ (N)).
+	not(divides(N, 2)), 
+	assert (prime_ (N)).	
 
 composite(N) :- composite_(N), !.
 
@@ -27,10 +27,10 @@ checkRec(N, [H1 | []]) :-
 	prime(H1), N = H1.
 
 checkRec(N, [H1 | [H2 | T]]) :-
-	prime(H1),
-	0 is mod(N, H1),
+	prime(H1), 
+	0 is mod(N, H1), 
 	N1 is div(N, H1),
-	H2 >= H1,
+	H2 >= H1, 
 	checkRec(N1, [H2 | T]).
 
 prime_div(N, Divs) :- prime_div_(N, Divs), !.
@@ -38,11 +38,11 @@ prime_div(N, Divs) :- prime_div_(N, Divs), !.
 prime_div(N, Divs) :- checkRec(N, Divs), assert(prime_div(N, Divs)).
 
 
-
+  
 ordered([H1 | []]) :- !.
 
 ordered([H1 | [H2 | T]]) :-
-	H1 =< H2,
+	H1 =< H2, 
 	ordered([H2 | T]).
 
 listToNum([H1 | []], Cur, N) :-
@@ -52,18 +52,18 @@ listToNum([H1 | [H2 | T]], Cur, N) :-
 	prime(H1),
 	Cur1 is Cur * H1,
 	listToNum([H2 | T], Cur1, N).
-
+	
 prime_divisors(1, []) :- !.
 
 prime_divisors(N, [N]) :- prime(N), !.
-
-prime_divisors(N, Divisors) :-
-	is_list(Divisors),
+	
+prime_divisors(N, Divisors) :- 
+	is_list(Divisors), 
 	ordered(Divisors),
 	listToNum(Divisors, 1, N), !.
 
 prime_divisors(N, Divisors) :-
-	not(is_list(Divisors)),
+	not(is_list(Divisors)), 
 	prime_divs(N, Divisors), !.
 
 prime_divs(N, L) :- prime_divs_(N, L), !.
@@ -79,25 +79,14 @@ find_prime_factor(N, D, D) :-
 
 find_prime_factor(N, D, R) :-
     D < N,
-    (0 is N mod D ->
-    		(N1 is N/D, find_prime_factor(N1, D, R)) ;
+    (0 is N mod D -> 
+    		(N1 is N/D, find_prime_factor(N1, D, R)) ;  
     		(D1 is D + 1, find_prime_factor(N, D1, R))
     ).
 
-%init(N) :-
-%	nth_prime(N), !.
-
-
-%cnt(1) :- !.
-%cnt(N) :-
-%	N > 1,
-%	N1 is N - 1,
-%	nth_prime(N, P),
-%	assert(nth_prime_(N, P)),
-%	cnt(N1).
 
 next(K, R) :-
-	prime(K),
+	prime(K), 
 	R is K, !.
 
 next(K, R) :-
@@ -107,35 +96,14 @@ next(K, R) :-
 nth_prime(1, 2).
 nth_prime(N, P) :-
 	count(3, 2, N, P).
-
+	
 count(Cur, Num, N, P) :-
-	Num is N,
-	P is Cur, !.
+	Num is N, 
+	P is Cur, !. 
 
 count(Cur, Num, N, P) :-
 	Num < N,
-	Num1 is Num + 1,
-	T is Cur + 1,
+	Num1 is Num + 1, 
+	T is Cur + 1, 
 	next(T, Cur1),
 	count(Cur1, Num1, N, P).
-
-trans(N, K, []) :-
-	N = 0, !.
-
-trans(N, K, [H | T]) :-
-	N1 is div(N, K),
-	H is mod(N, K),
-	trans(N1, K, T).
-
-compare([], []) :- !.
-compare([H], []) :- fail, !.
-compare([], [H]) :- fail, !.
-
-compare([H | T1], [H | T2]) :-
-	compare(T1, T2).
-
-prime_palindrome(N, K) :-
-	prime(N),
-	trans(N, K, Res),
-	reverse(Res, RevRes),
-	compare(Res, RevRes), !.
