@@ -72,12 +72,16 @@
                                     :diff (fn [_ _] (Constant 0))
                                     :value     val}))
 
+(def ZERO (Constant 0))
+(def ONE (Constant 1))
+(def TWO (Constant 2))
+
 (defn Variable [val]
       (let [name (field :value)] {
                                   :toString #(name %)
                                   :evaluate #(%2 (name %1))
                                   :toStringSuffix #(name %)
-                                  :diff     #(if (= (name %1) %2) (Constant 1) (Constant 0))
+                                  :diff     #(if (= (name %1) %2) ONE ZERO)
                                   :value     val})
       )
 
@@ -112,10 +116,6 @@
 (def Subtract (makeOperation '- - #(apply Subtract %2)))
 
 (def Negate (makeOperation 'negate - #(apply Negate %2)))
-
-(def ZERO (Constant 0))
-(def ONE (Constant 1))
-(def TWO (Constant 2))
 
 (comment ":NOTE: copy-paste (at least call `diffEach` of operands in each declaration)")
 (comment ":NOTE: diffAtInd is not a solution, you sill call diff in each declaration but in other function")
