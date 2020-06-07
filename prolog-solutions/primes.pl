@@ -1,5 +1,7 @@
 %review
 
+% :NOTE: too many code
+
 divides(N, D) :- divides_(N, D), !.
 
 divides(N, D) :-
@@ -14,6 +16,7 @@ divides(N, D) :-
 
 prime(N) :- prime_(N), !.
 
+% :NOTE: check for prime should work in O(1), now it's O(n) due to `divides`
 prime(N) :-
 	N > 1,
 	not(divides(N, 2)), 
