@@ -1,23 +1,23 @@
-%delay
+%review
 
-new_node(P, t(P, Y, nil, nil)) :- rand_int(1000, Y).
+new_node(P, t(P, Y, nil, nil)) :- rand_int(10007, Y).
 
 map_split(nil, K, nil, nil).
 map_split(t((Key, Val), Y, L, R), K, SpL, SpR) :-
-		(K > Key -> 
-			map_split(R, K, T1, SpR), 
-				SpL = t((Key, Val), Y, L, T1);
+		(K =< Key -> 
 			map_split(L, K, SpL, T2), 
-				SpR = t((Key, Val), Y, T2, R)).
+				SpR = t((Key, Val), Y, T2, R));
+			map_split(R, K, T1, SpR), 
+				SpL = t((Key, Val), Y, L, T1).
 
 map_merge(A, nil, A).
 map_merge(nil, A, A) :- A \= nil.
 map_merge(t((Key1, Val1), Y1, L1, R1), t((Key2, Val2), Y2, L2, R2), Res) :-
-		(Y1 > Y2 -> 
-			map_merge(R1, t((Key2, Val2), Y2, L2, R2), T), 
-				Res = t((Key1, Val1), Y1, L1, T);
+		(Y1 =< Y2 -> 
 			map_merge(t((Key1, Val1), Y1, L1, R1), L2, T), 
-				Res = t((Key2, Val2), Y2, T, R2)).
+				Res = t((Key2, Val2), Y2, T, R2));
+			map_merge(R1, t((Key2, Val2), Y2, L2, R2), T), 
+				Res = t((Key1, Val1), Y1, L1, T).
 
 map_insert((X, Y), nil, R) :- new_node((X, Y), R).
 map_insert((X, Y), t((Key, Val), TY, TL, TR), R) :-
@@ -38,25 +38,24 @@ map_put(T, Key, Val, Res) :-
 map_get(nil, not Key, _).
 map_get(t((X, Val), _, _, _), X, Val).
 map_get(t((Key, Val), Y, L, R), X, P) :- X \= Key,
-		(X > Key ->
-			map_get(R, X, P);
-			map_get(L, X, P)).
+		(X =< Key ->
+			map_get(L, X, P);
+			map_get(R, X, P)
+		).
 
 build([], T, T).
 build([(X, Y) | Tail], T, R) :-
     map_put(T, X, Y, New),
     build(Tail, New, R).
 
-map_build(List, T) :- 
-		build(List, nil, T).
+map_build(List, T) :- build(List, nil, T).
 
-map_minKey(t((TKey,TValue), TY, nil, _), R):-
-		R is TKey, !.
-map_minKey(t((TKey,TValue), TY, TL, TR), R):-
-		map_minKey(TL, R).
-
+map_minKey(t((TKey,TValue), TY, nil, _), R):- R is TKey, !.
+map_minKey(t((TKey,TValue), TY, TL, TR), R):- map_minKey(TL, R).
 		
-map_maxKey(t((TKey,TValue), TY, _, nil), R):-
-		R is TKey, !.
-map_maxKey(t((TKey,TValue), TY, TL, TR), R):-
-		map_maxKey(TR, R).
+map_maxKey(t((TKey,TValue), TY, _, nil), R):- R is TKey, !.
+map_maxKey(t((TKey,TValue), TY, TL, TR), R):- map_maxKey(TR, R).
+
+map_ceilingKey(T, Key, CeilingKey) :-
+	map_split(T, Key, SpL, SpR),
+	map_minKey(SpR, CeilingKey).
