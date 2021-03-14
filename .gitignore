@@ -1,5 +1,5 @@
-/paradigms-2020-solutions.iml
 /.idea/
+/paradigms-2020-solutions.iml
 /java-solutions/expression/base/
 /java-solutions/expression/generic/GenericTest.java
 /java-solutions/expression/generic/GenericCmmTest.java
@@ -16,3 +16,5 @@
 /.project
 /out/
 /clojure-solutions/__out/
+/__out/
+/prolog-solutions/__out/
